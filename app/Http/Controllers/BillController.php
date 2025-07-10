@@ -395,7 +395,7 @@ class BillController extends Controller
                     if (isset($products[$i]['item'])) {
                         $billProduct->product_id = $products[$i]['item'];
                     }
-                   
+
 
                     $billProduct->quantity    = $products[$i]['quantity'];
                     $billProduct->tax         = $products[$i]['tax'];
@@ -581,8 +581,7 @@ class BillController extends Controller
     function billNumber()
     {
         $latest = Bill::where('created_by', '=', \Auth::user()->creatorId())->latest()->first();
-        if(!$latest)
-        {
+        if (!$latest) {
             return 1;
         }
 
@@ -591,7 +590,7 @@ class BillController extends Controller
 
     public function product(Request $request)
     {
-        try{
+        try {
             $data['product']     = $product = ProductService::find($request->product_id);
             $data['unit']        = !empty($product->unit) ? $product->unit->name : 0;
             $data['taxRate']     = $taxRate = !empty($product->tax_id) ? $product->taxRate($product->tax_id) : 0;
@@ -601,10 +600,9 @@ class BillController extends Controller
             $taxPrice            = ($taxRate / 100) * ($salePrice * $quantity) ?? 0;
             $data['totalAmount'] = ($salePrice * $quantity) ?? 0;
             return json_encode($data);
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return response()->json(['status' => false, 'message' => __('Something went wrong.')]);
         }
-       
     }
 
     public function productDestroy(Request $request)
@@ -612,7 +610,7 @@ class BillController extends Controller
 
         if (\Auth::user()->can('delete bill product')) {
             $billProduct = BillProduct::find($request->id);
-            if($billProduct){
+            if ($billProduct) {
                 $bill = Bill::find($billProduct->bill_id);
                 Utility::updateUserBalance('vendor', $bill->vender_id, $request->amount, 'credit');
                 $productService = ProductService::find($billProduct->product_id);
@@ -620,7 +618,7 @@ class BillController extends Controller
                 BillProduct::where('id', '=', $request->id)->delete();
                 BillAccount::where('id', '=', $request->account_id)->delete();
                 return response()->json(['status' => true, 'message' => __('Bill product successfully deleted.')]);
-            }else{
+            } else {
                 return response()->json(['status' => false, 'message' => __('Bill product not found.')]);
             }
         } else {
@@ -733,6 +731,38 @@ class BillController extends Controller
             return redirect()->back()->with('success', __('Bill successfully sent.') . ((isset($smtp_error)) ? '<br> <span class="text-danger">' . $smtp_error . '</span>' : ''));
         } else {
             return redirect()->back()->with('error', __('Permission denied.'));
+        }
+    }
+
+    public function sendEmailAuth($id)
+    {
+        try {
+            $uArr = [
+                'bill_name' => "bill->name",
+                'bill_number' => "bill->bill",
+                'bill_url' => "bill->url",
+            ];
+            $resp = Utility::sendEmailTemplateWithDocument('bill_sent', "wilbrenrosario@gmail.com", $uArr);
+            return response()->json(['success' => true, 'msg' => $resp]);
+        } catch (\Exception $e) {
+            $smtp_error = __('E-Mail has been not sent due to SMTP configuration');
+            return response()->json(['success' => false]);
+        }
+    }
+
+    public function sendEmailAuthAproved($id)
+    {
+        try {
+            $uArr = [
+                'bill_name' => "bill->name",
+                'bill_number' => "bill->bill",
+                'bill_url' => "bill->url",
+            ];
+            $resp = Utility::sendEmailTemplateWithDocumentAuthorizationTransfer('bill_sent', "wilbrenrosario@gmail.com", $uArr);
+            return response()->json(['success' => true, 'msg' => $resp]);
+        } catch (\Exception $e) {
+            $smtp_error = __('E-Mail has been not sent due to SMTP configuration');
+            return response()->json(['success' => false]);
         }
     }
 
@@ -967,6 +997,8 @@ class BillController extends Controller
     {
         return view('vender.bill_send', compact('bill_id'));
     }
+
+
 
     public function venderBillSendMail(Request $request, $bill_id)
     {
@@ -1328,26 +1360,26 @@ class BillController extends Controller
     {
 
         if (!empty($bill_id)) {
-            try{
+            try {
                 $id = \Illuminate\Support\Facades\Crypt::decrypt($bill_id);
                 $bill = bill::where('id', $id)->first();
                 if (!is_null($bill)) {
-    
+
                     $settings = Utility::settings();
-    
+
                     $items         = [];
                     $totalTaxPrice = 0;
                     $totalQuantity = 0;
                     $totalRate     = 0;
                     $totalDiscount = 0;
                     $taxesData     = [];
-    
+
                     foreach ($bill->items as $item) {
                         $totalQuantity += $item->quantity;
                         $totalRate     += $item->price;
                         $totalDiscount += $item->discount;
                         $taxes         = Utility::tax($item->tax);
-    
+
                         $itemTaxes = [];
                         foreach ($taxes as $tax) {
                             if (!empty($tax)) {
@@ -1357,7 +1389,7 @@ class BillController extends Controller
                                 $itemTax['tax']      = $tax->tax . '%';
                                 $itemTax['price']    = Utility::priceFormat($settings, $taxPrice);
                                 $itemTaxes[]         = $itemTax;
-    
+
                                 if (array_key_exists($tax->name, $taxesData)) {
                                     $taxesData[$itemTax['tax_name']] = $taxesData[$tax->tax_name] + $taxPrice;
                                 } else {
@@ -1370,7 +1402,7 @@ class BillController extends Controller
                                 $itemTax['tax']      = '';
                                 $itemTax['price']    = Utility::priceFormat($settings, $taxPrice);
                                 $itemTaxes[]         = $itemTax;
-    
+
                                 if (array_key_exists('No Tax', $taxesData)) {
                                     $taxesData[$tax->tax_name] = $taxesData['No Tax'] + $taxPrice;
                                 } else {
@@ -1390,30 +1422,29 @@ class BillController extends Controller
                     $ownerId = $bill->created_by;
                     $company_setting = Utility::settingById($ownerId);
                     $payment_setting = Utility::bill_payment_settings($ownerId);
-    
+
                     $users = User::where('id', $bill->created_by)->first();
-    
+
                     if (!is_null($users)) {
                         \App::setLocale($users->lang);
                     } else {
                         $users = User::where('type', 'owner')->first();
                         \App::setLocale($users->lang);
                     }
-    
-    
+
+
                     $bill    = bill::where('id', $id)->first();
                     $customer = $bill->customer;
                     $iteams   = $bill->items;
                     $company_payment_setting = Utility::getCompanyPaymentSetting($bill->created_by);
-    
+
                     return view('bill.billpay', compact('bill', 'iteams', 'company_setting', 'users', 'payment_setting'));
                 } else {
                     return abort('404', 'The Link You Followed Has Expired');
                 }
-            }catch(Exception $e){
+            } catch (Exception $e) {
                 return redirect()->back()->with('error', __('Not found.'));
             }
-           
         } else {
             return abort('404', 'The Link You Followed Has Expired');
         }

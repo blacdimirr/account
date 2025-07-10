@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use MercadoPago\Plan;
 
+use Barryvdh\DomPDF\Facade\Pdf;
+
+
 class Utility extends Model
 {
 
@@ -210,7 +213,7 @@ class Utility extends Model
     public static function settingsById($id)
     {
         $data = Utility::getSettingById($id);
-        
+
         $settings = [
             "site_currency" => "USD",
             "site_currency_symbol" => "$",
@@ -1533,21 +1536,21 @@ class Utility extends Model
 
     public static function sendEmailTemplate($emailTemplate, $mailTo, $obj)
     {
-        
+
         $usr = \Auth::user();
         $usr->lang = !empty($usr->lang) ? $usr->lang : 'en';
         //Remove Current Login user Email don't send mail to them
         // unset($mailTo[$usr->id]);
-        
-        
-        $mailTo = array_values($mailTo);
-        
+
+
+        $mailTo = $mailTo;
+
         // if ($usr->user_type != 'super admin') {
-            // find template is exist or not in our record
-            $template = EmailTemplate::where('slug', $emailTemplate)->first();
-            
-            if (isset($template) && !empty($template)) {
-                // check template is active or not by company
+        // find template is exist or not in our record
+        $template = EmailTemplate::where('slug', $emailTemplate)->first();
+
+        if (isset($template) && !empty($template)) {
+            // check template is active or not by company
 
             $is_active = UserEmailTemplate::where('template_id', '=', $template->id)->first();
             if ($template->id == 1) {
@@ -1560,14 +1563,14 @@ class Utility extends Model
                 $content = EmailTemplateLang::where('parent_id', '=', $template->id)->where('lang', 'LIKE', $usr->lang)->first();
                 $content->from = $template->from;
 
-                    $settings = self::settingsById($usr->id);
-                    
+                $settings = self::settingsById($usr->id);
+
 
                 if (!empty($content->content)) {
                     $content->content = self::replaceVariable($content->content, $obj);
                     // send email
                     try {
-                        config([
+                        /*config([
                             'mail.driver'        => isset($settings['mail_driver'])       ? $settings['mail_driver']       : '',
                             'mail.host'         => isset($settings['mail_host'])         ? $settings['mail_host']         : '',
                             'mail.port'         => isset($settings['mail_port'])         ? $settings['mail_port']         : '',
@@ -1576,9 +1579,8 @@ class Utility extends Model
                             'mail.password'     => isset($settings['mail_password'])     ? $settings['mail_password']     : '',
                             'mail.from.address' => isset($settings['mail_from_address']) ? $settings['mail_from_address'] : '',
                             'mail.from.name'    => isset($settings['mail_from_name'])    ? $settings['mail_from_name']    : '',
-                        ]);
+                        ]);*/
                         Mail::to($mailTo)->send(new CommonEmailTemplate($content, $settings));
-                      
                     } catch (\Exception $e) {
                         $error = __('E-Mail has been not sent due to SMTP configuration');
                     }
@@ -1614,6 +1616,133 @@ class Utility extends Model
             ];
         }
     }
+
+    public static function sendEmailTemplateWithDocument($emailTemplate, $mailTo, $obj)
+    {
+        $usr = Auth::user();
+        $usr->lang = !empty($usr->lang) ? $usr->lang : 'en';
+
+        $template = EmailTemplate::where('slug', $emailTemplate)->first();
+
+        if ($template) {
+            $is_active = UserEmailTemplate::where('template_id', '=', $template->id)->first();
+            if ($template->id == 1) {
+                $is_active->is_active = 1;
+            }
+
+            if ($is_active && $is_active->is_active == 1) {
+                $content = EmailTemplateLang::where('parent_id', $template->id)
+                    ->where('lang', 'LIKE', $usr->lang)
+                    ->first();
+
+                $content->from = $template->from;
+                $settings = self::settingsById($usr->id);
+
+                if (!empty($content->content)) {
+                    $content->content = self::replaceVariable($content->content, $obj);
+
+                    try {
+                        // 🔽 Generar el PDF desde una vista Blade (ajústala a tu necesidad)
+                        $pdf = Pdf::loadView('pdf.transferencia', ['obj' => $obj]);
+                        $pdfPath = storage_path('app/public/transferencia-' . now()->format('Y-m-d') . '.pdf');
+                        $pdf->save($pdfPath);
+
+                        // 🔽 Enviar correo con PDF adjunto
+                        Mail::to($mailTo)->send(new CommonEmailTemplate($content, $settings, $pdfPath));
+                    } catch (\Exception $e) {
+                        return [
+                            'is_success' => false,
+                            'error' => __('E-Mail has been not sent due to SMTP configuration'),
+                        ];
+                    }
+
+                    return [
+                        'is_success' => true,
+                        'error' => false,
+                    ];
+                }
+
+                return [
+                    'is_success' => false,
+                    'error' => __('Mail not send, email is empty'),
+                ];
+            }
+
+            return [
+                'is_success' => true,
+                'error' => false,
+            ];
+        }
+
+        return [
+            'is_success' => false,
+            'error' => __('Mail not send, email not found'),
+        ];
+    }
+
+    public static function sendEmailTemplateWithDocumentAuthorizationTransfer($emailTemplate, $mailTo, $obj)
+    {
+        $usr = Auth::user();
+        $usr->lang = !empty($usr->lang) ? $usr->lang : 'en';
+
+        $template = EmailTemplate::where('slug', $emailTemplate)->first();
+
+        if ($template) {
+            $is_active = UserEmailTemplate::where('template_id', '=', $template->id)->first();
+            if ($template->id == 1) {
+                $is_active->is_active = 1;
+            }
+
+            if ($is_active && $is_active->is_active == 1) {
+                $content = EmailTemplateLang::where('parent_id', $template->id)
+                    ->where('lang', 'LIKE', $usr->lang)
+                    ->first();
+
+                $content->from = $template->from;
+                $settings = self::settingsById($usr->id);
+
+                if (!empty($content->content)) {
+                    $content->content = self::replaceVariable($content->content, $obj);
+
+                    try {
+                        // 🔽 Generar el PDF desde una vista Blade (ajústala a tu necesidad)
+                        $pdf = Pdf::loadView('pdf.transferencia_auth', ['obj' => $obj]);
+                        $pdfPath = storage_path('app/public/authorization-' . now()->format('Y-m-d') . '.pdf');
+                        $pdf->save($pdfPath);
+
+                        // 🔽 Enviar correo con PDF adjunto
+                        Mail::to($mailTo)->send(new CommonEmailTemplate($content, $settings, $pdfPath));
+                    } catch (\Exception $e) {
+                        return [
+                            'is_success' => false,
+                            'error' => __('E-Mail has been not sent due to SMTP configuration'),
+                        ];
+                    }
+
+                    return [
+                        'is_success' => true,
+                        'error' => false,
+                    ];
+                }
+
+                return [
+                    'is_success' => false,
+                    'error' => __('Mail not send, email is empty'),
+                ];
+            }
+
+            return [
+                'is_success' => true,
+                'error' => false,
+            ];
+        }
+
+        return [
+            'is_success' => false,
+            'error' => __('Mail not send, email not found'),
+        ];
+    }
+
 
     // Make Entry in email_tempalte_lang table when create new language
     public static function makeEmailLang($lang)
@@ -1679,7 +1808,7 @@ class Utility extends Model
                 if (empty($extension) || !in_array($extension, $allowed_extensions)) {
                     return [
                         'flag' => 0,
-                            'msg' => 'The ' . $key_name . ' must be a file of type: ' . implode(', ', $allowed_extensions) . '.',
+                        'msg' => 'The ' . $key_name . ' must be a file of type: ' . implode(', ', $allowed_extensions) . '.',
                     ];
                 }
 
@@ -1770,19 +1899,17 @@ class Utility extends Model
                     $mimes =  !empty($settings['local_storage_validation']) ? $settings['local_storage_validation'] : '';
                 }
 
-                    $res = [
-                        'types'  => $mimes,
-                        'max_size'  => $max_size,
-                    ];
-                    return $res;
-
+                $res = [
+                    'types'  => $mimes,
+                    'max_size'  => $max_size,
+                ];
+                return $res;
             } else {
                 $res = [
                     'flag' => 0,
                     'msg' => __('Please set proper configuration for storage.'),
                 ];
                 return $res;
-
             }
         } catch (\Exception $e) {
             $res = [
@@ -1820,7 +1947,7 @@ class Utility extends Model
                 );
             }
 
-            return $settings['storage_setting'] == 'local' ? url('/') . Storage::disk('local')->url($path): Storage::disk($settings['storage_setting'])->url($path);
+            return $settings['storage_setting'] == 'local' ? url('/') . Storage::disk('local')->url($path) : Storage::disk($settings['storage_setting'])->url($path);
         } catch (\Throwable $th) {
             return '';
         }
@@ -2221,7 +2348,6 @@ class Utility extends Model
                 );
             }
         }
-
     }
 
     public static $chartOfAccount = array(
@@ -2351,7 +2477,8 @@ class Utility extends Model
             'name' => 'Purchase Tax',
             'type' => 2,
             'sub_type' => 4,
-        ], [
+        ],
+        [
             'code' => '2150',
             'name' => 'VAT Pay / Refund',
             'type' => 2,
@@ -2422,7 +2549,8 @@ class Utility extends Model
             'name' => 'Accr. Benefits - Central Provident Fund',
             'type' => 2,
             'sub_type' => 4,
-        ], [
+        ],
+        [
             'code' => '2320',
             'name' => 'Accr. Benefits - Stock Purchase',
             'type' => 2,
@@ -3026,7 +3154,8 @@ class Utility extends Model
             'name' => 'Purchase Tax',
             'type' => 'Liabilities',
             'sub_type' => 'Current Liabilities',
-        ], [
+        ],
+        [
             'code' => '2150',
             'name' => 'VAT Pay / Refund',
             'type' => 'Liabilities',
@@ -3097,7 +3226,8 @@ class Utility extends Model
             'name' => 'Accr. Benefits - Central Provident Fund',
             'type' => 'Liabilities',
             'sub_type' => 'Current Liabilities',
-        ], [
+        ],
+        [
             'code' => '2320',
             'name' => 'Accr. Benefits - Stock Purchase',
             'type' => 'Liabilities',
@@ -3683,17 +3813,17 @@ class Utility extends Model
         $transactionLines->save();
     }
 
-    public static function check_file($path){
-        if(!empty($path)){
+    public static function check_file($path)
+    {
+        if (!empty($path)) {
 
             $settings = Utility::settings();
-            if( $settings['storage_setting'] == 'local' || $settings['storage_setting'] == null){
+            if ($settings['storage_setting'] == 'local' || $settings['storage_setting'] == null) {
 
-                 return Storage::disk($settings['storage_setting'])->exists($path);
-            }else{
+                return Storage::disk($settings['storage_setting'])->exists($path);
+            } else {
 
-                if($settings['storage_setting'] == 's3')
-                {
+                if ($settings['storage_setting'] == 's3') {
                     config(
                         [
                             'filesystems.disks.s3.key' => $settings['s3_key'],
@@ -3704,9 +3834,7 @@ class Utility extends Model
                             'filesystems.disks.s3.endpoint' => $settings['s3_endpoint'],
                         ]
                     );
-                }
-                else if($settings['storage_setting'] == 'wasabi')
-                {
+                } else if ($settings['storage_setting'] == 'wasabi') {
                     config(
                         [
                             'filesystems.disks.wasabi.key' => $settings['wasabi_key'],
@@ -3720,14 +3848,13 @@ class Utility extends Model
                     );
                 }
 
-            try{
-                return Storage::disk($settings['storage_setting'])->exists($path);
-            } catch (\Exception $e) {
-                return 0;
+                try {
+                    return Storage::disk($settings['storage_setting'])->exists($path);
+                } catch (\Exception $e) {
+                    return 0;
+                }
             }
-
-            }
-        }else{
+        } else {
             return 0;
         }
     }

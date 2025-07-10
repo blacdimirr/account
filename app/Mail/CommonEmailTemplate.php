@@ -12,17 +12,18 @@ class CommonEmailTemplate extends Mailable
 
     public $template;
     public $settings;
+    public $pdfPath; // ← NUEVO
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($template, $settings)
+    public function __construct($template, $settings, $pdfPath = null)
     {
-
         $this->template = $template;
         $this->settings = $settings;
+        $this->pdfPath = $pdfPath; // ← NUEVO
     }
 
     /**
@@ -32,7 +33,21 @@ class CommonEmailTemplate extends Mailable
      */
     public function build()
     {
-        return $this->from($this->settings['company_email'], $this->template->from)->markdown('email.common_email_template')->subject($this->template->subject)->with('content', $this->template->content);
+        $email = $this->from(
+            $this->settings['company_email'],
+            $this->template->from
+        )->markdown('email.common_email_template')
+         ->subject($this->template->subject)
+         ->with('content', $this->template->content);
 
+        // ← NUEVO: Adjuntar PDF si se proporcionó y existe
+        if (!empty($this->pdfPath) && file_exists($this->pdfPath)) {
+            $email->attach($this->pdfPath, [
+                'as' => 'transferencia.pdf',
+                'mime' => 'application/pdf',
+            ]);
+        }
+
+        return $email;
     }
 }

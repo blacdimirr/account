@@ -218,7 +218,7 @@ Route::get('email_template_lang/{id}/{lang?}', [EmailTemplateController::class, 
 Route::put('email_template_store/{pid}', [EmailTemplateController::class, 'storeEmailLang'])->name('store.email.language')->middleware(['auth']);
 Route::post('email_template_status', [EmailTemplateController::class, 'updateStatus'])->name('status.email.language')->middleware(['auth']);
 
-Route::resource('email_template', EmailTemplateController::class)->middleware(['auth','XSS']);
+Route::resource('email_template', EmailTemplateController::class)->middleware(['auth', 'XSS']);
 
 
 
@@ -452,7 +452,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -471,7 +472,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -544,7 +546,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -566,7 +569,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -586,7 +590,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -598,7 +603,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -629,7 +635,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -655,7 +662,7 @@ Route::group(
         Route::get('invoice/items', [InvoiceController::class, 'items'])->name('invoice.items');
 
 
-        Route::resource('invoice', InvoiceController::class)->except('index','create');
+        Route::resource('invoice', InvoiceController::class)->except('index', 'create');
         Route::get('invoice/create/{cid}', [InvoiceController::class, 'create'])->name('invoice.create');
     }
 );
@@ -667,7 +674,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -692,7 +700,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -730,7 +739,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -747,6 +757,9 @@ Route::group(
         Route::get('bill/{id}/resent', [BillController::class, 'resent'])->name('bill.resent');
 
 
+        Route::post('bill/{id}/sendEmailAuth', [BillController::class, 'sendEmailAuth'])->name('bill.sendEmailAuth');
+        Route::post('bill/{id}/sendEmailAuthAproved', [BillController::class, 'sendEmailAuthAproved'])->name('bill.sendEmailAuthAproved');
+
 
         Route::get('bill/{id}/payment', [BillController::class, 'payment'])->name('bill.payment');
         Route::post('bill/{id}/payment', [BillController::class, 'createPayment'])->name('add.bill.payment');
@@ -755,7 +768,7 @@ Route::group(
 
 
 
-        Route::resource('bill', BillController::class)->except('index','create');
+        Route::resource('bill', BillController::class)->except('index', 'create');
         Route::get('bill/create/{cid}', [BillController::class, 'create'])->name('bill.create');
     }
 );
@@ -777,7 +790,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -789,7 +803,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -893,7 +908,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -907,7 +923,8 @@ Route::group(
     [
         'middleware' => [
             'auth',
-            'XSS', 'revalidate',
+            'XSS',
+            'revalidate',
         ],
     ],
     function () {
@@ -1129,26 +1146,26 @@ Route::any('retainer-midtrans-status/', [MidtransController::class, 'getRetainer
 //--------------------------------------------Invoice---------------------------//
 
 // Paiementpro
-Route::any('invoice-paiementpro-payment/{id}', [PaiementProController::class, 'invoicePayWithPaiementpro'])->name('invoice.with.paiementpro')->middleware(['auth','XSS']);
-Route::any('/invoice-paiementpro-status/{invoice_id}',  [PaiementProController::class, 'invoiceGetPaiementproStatus'])->name('invoice.paiementpro.status')->middleware(['auth','XSS']);
+Route::any('invoice-paiementpro-payment/{id}', [PaiementProController::class, 'invoicePayWithPaiementpro'])->name('invoice.with.paiementpro')->middleware(['auth', 'XSS']);
+Route::any('/invoice-paiementpro-status/{invoice_id}',  [PaiementProController::class, 'invoiceGetPaiementproStatus'])->name('invoice.paiementpro.status')->middleware(['auth', 'XSS']);
 
 // Nepalste
-Route::post('invoice-nepalste-payment/{id}', [NepalstePaymnetController::class, 'invoicePayWithNepalste'])->name('invoice.with.nepalste')->middleware(['auth','XSS']);
-Route::get('invoice-nepalste-status/{id}/{amt?}',[NepalstePaymnetController::class,'invoiceGetNepalsteStatus'])->name('invoice.nepalste.status')->middleware(['auth','XSS']);
-Route::get('invoice-nepalste-cancel/',[NepalstePaymnetController::class,'invoiceGetNepalsteCancel'])->name('invoice.nepalste.cancel')->middleware(['auth','XSS']);
+Route::post('invoice-nepalste-payment/{id}', [NepalstePaymnetController::class, 'invoicePayWithNepalste'])->name('invoice.with.nepalste')->middleware(['auth', 'XSS']);
+Route::get('invoice-nepalste-status/{id}/{amt?}', [NepalstePaymnetController::class, 'invoiceGetNepalsteStatus'])->name('invoice.nepalste.status')->middleware(['auth', 'XSS']);
+Route::get('invoice-nepalste-cancel/', [NepalstePaymnetController::class, 'invoiceGetNepalsteCancel'])->name('invoice.nepalste.cancel')->middleware(['auth', 'XSS']);
 
 // Cinetpay
-Route::any('invoice-cinetpay-payment/{id}', [CinetPayController::class, 'invoicePayWithCinetPay'])->name('invoice.with.cinetpay')->middleware(['auth','XSS']);
+Route::any('invoice-cinetpay-payment/{id}', [CinetPayController::class, 'invoicePayWithCinetPay'])->name('invoice.with.cinetpay')->middleware(['auth', 'XSS']);
 Route::any('invoice-cinetpay-return/{id}/{amt?}',  [CinetPayController::class, 'invoiceCinetPayReturn'])->name('invoice.cinetpay.return')->middleware(['auth']);
-Route::any('invoice-cinetpay-notify/{id?}',  [CinetPayController::class, 'invoiceCinetPayNotify'])->name('invoice.cinetpay.notify')->middleware(['auth','XSS']);
+Route::any('invoice-cinetpay-notify/{id?}',  [CinetPayController::class, 'invoiceCinetPayNotify'])->name('invoice.cinetpay.notify')->middleware(['auth', 'XSS']);
 
 //Fedapay
-Route::any('invoice-fedapay-payment/{id}', [FedapayController::class, 'invoicePayWithFedapay'])->name('invoice.with.fedapay')->middleware(['auth','XSS']);
-Route::any('invoice-fedapay-status/{id}/{amt?}',  [FedapayController::class, 'invoiceGetFedapayStatus'])->name('invoice.fedapay.status')->middleware(['auth','XSS']);
+Route::any('invoice-fedapay-payment/{id}', [FedapayController::class, 'invoicePayWithFedapay'])->name('invoice.with.fedapay')->middleware(['auth', 'XSS']);
+Route::any('invoice-fedapay-status/{id}/{amt?}',  [FedapayController::class, 'invoiceGetFedapayStatus'])->name('invoice.fedapay.status')->middleware(['auth', 'XSS']);
 
 //Payhere
-Route::any('invoice-payhere-payment/{id}', [PayHereController::class, 'invoicePayWithPayHere'])->name('invoice.with.payhere')->middleware(['auth','XSS']);
-Route::any('invoice-payhere-status/{id}/{amt?}',  [PayHereController::class, 'invoiceGetPayHereStatus'])->name('invoice.payhere.status')->middleware(['auth','XSS']);
+Route::any('invoice-payhere-payment/{id}', [PayHereController::class, 'invoicePayWithPayHere'])->name('invoice.with.payhere')->middleware(['auth', 'XSS']);
+Route::any('invoice-payhere-status/{id}/{amt?}',  [PayHereController::class, 'invoiceGetPayHereStatus'])->name('invoice.payhere.status')->middleware(['auth', 'XSS']);
 
 //Tap
 Route::any('invoice-tap-payment', [TapPaymentController::class, 'invoicePayWithTap'])->name('invoice.with.tap')->middleware(['XSS']);
@@ -1156,41 +1173,41 @@ Route::any('invoice-tap-status',  [TapPaymentController::class, 'invoiceGetTapSt
 
 //AuhorizeNet
 Route::any('/invoice-authorizenet-payment', [AuthorizeNetController::class, 'invoicePayWithAuthorizeNet'])->name('invoice.with.authorizenet');
-Route::any('/invoice-get-authorizenet-status',[AuthorizeNetController::class,'getInvoicePaymentStatus'])->name('invoice.get.authorizenet.status');
+Route::any('/invoice-get-authorizenet-status', [AuthorizeNetController::class, 'getInvoicePaymentStatus'])->name('invoice.get.authorizenet.status');
 
 //Khalti
 Route::any('/invoice-khalti-payment', [KhaltiPaymentController::class, 'invoicePayWithKhalti'])->name('invoice.with.khalti');
-Route::any('/invoice-get-khalti-status',[KhaltiPaymentController::class,'getInvoicePaymentStatus'])->name('invoice.get.khalti.status');
+Route::any('/invoice-get-khalti-status', [KhaltiPaymentController::class, 'getInvoicePaymentStatus'])->name('invoice.get.khalti.status');
 
 //ozow
 Route::any('/invoice-ozow-payment', [OzowPaymentController::class, 'invoicePayWithozow'])->name('invoice.with.ozow');
-Route::any('/invoice-get-ozow-status/{id}',[OzowPaymentController::class,'getInvoicePaymentStatus'])->name('invoice.get.ozow.status');
+Route::any('/invoice-get-ozow-status/{id}', [OzowPaymentController::class, 'getInvoicePaymentStatus'])->name('invoice.get.ozow.status');
 
 
 //----------------------------------Retainer--------------------------//
-Route::any('plan-cinetpay-notify',  [CinetPayController::class, 'planCinetPayNotify'])->name('plan.cinetpay.notify')->middleware(['auth','XSS']);
+Route::any('plan-cinetpay-notify',  [CinetPayController::class, 'planCinetPayNotify'])->name('plan.cinetpay.notify')->middleware(['auth', 'XSS']);
 
 // Paiementpro
-Route::any('retainer-paiementpro-payment/{id}', [PaiementProController::class, 'retainerPayWithPaiementpro'])->name('retainer.with.paiementpro')->middleware(['auth','XSS']);
-Route::any('/retainer-paiementpro-status/{retainer_id}',  [PaiementProController::class, 'retainerGetPaiementproStatus'])->name('retainer.paiementpro.status')->middleware(['auth','XSS']);
+Route::any('retainer-paiementpro-payment/{id}', [PaiementProController::class, 'retainerPayWithPaiementpro'])->name('retainer.with.paiementpro')->middleware(['auth', 'XSS']);
+Route::any('/retainer-paiementpro-status/{retainer_id}',  [PaiementProController::class, 'retainerGetPaiementproStatus'])->name('retainer.paiementpro.status')->middleware(['auth', 'XSS']);
 
 //Nepalste
-Route::post('retainer-nepalste-payment/{id}', [NepalstePaymnetController::class, 'retainerPayWithNepalste'])->name('retainer.with.nepalste')->middleware(['auth','XSS']);
-Route::get('retainer-nepalste-status/{id}/{amt?}',[NepalstePaymnetController::class,'retainerGetNepalsteStatus'])->name('retainer.nepalste.status')->middleware(['auth','XSS']);
-Route::get('retainer-nepalste-cancel/',[NepalstePaymnetController::class,'retainerGetNepalsteCancel'])->name('retainer.nepalste.cancel')->middleware(['auth','XSS']);
+Route::post('retainer-nepalste-payment/{id}', [NepalstePaymnetController::class, 'retainerPayWithNepalste'])->name('retainer.with.nepalste')->middleware(['auth', 'XSS']);
+Route::get('retainer-nepalste-status/{id}/{amt?}', [NepalstePaymnetController::class, 'retainerGetNepalsteStatus'])->name('retainer.nepalste.status')->middleware(['auth', 'XSS']);
+Route::get('retainer-nepalste-cancel/', [NepalstePaymnetController::class, 'retainerGetNepalsteCancel'])->name('retainer.nepalste.cancel')->middleware(['auth', 'XSS']);
 
 //Cinetpay
-Route::any('retainer-cinetpay-payment/{id}', [CinetPayController::class, 'retainerPayWithCinetpay'])->name('retainer.with.cinetpay')->middleware(['auth','XSS']);
+Route::any('retainer-cinetpay-payment/{id}', [CinetPayController::class, 'retainerPayWithCinetpay'])->name('retainer.with.cinetpay')->middleware(['auth', 'XSS']);
 Route::any('retainer-cinetpay-return/{id}/{amt?}',  [CinetPayController::class, 'retainerCinetPayReturn'])->name('retainer.cinetpay.return')->middleware(['auth']);
-Route::any('retainer-cinetpay-notify/{id?}',  [CinetPayController::class, 'retainerCinetPayNotify'])->name('retainer.cinetpay.notify')->middleware(['auth','XSS']);
+Route::any('retainer-cinetpay-notify/{id?}',  [CinetPayController::class, 'retainerCinetPayNotify'])->name('retainer.cinetpay.notify')->middleware(['auth', 'XSS']);
 
 //Fedapay
-Route::any('retainer-fedapay-payment/{id}', [FedapayController::class, 'retainerPayWithFedapay'])->name('retainer.with.fedapay')->middleware(['auth','XSS']);
-Route::any('retainer-fedapay-status/{id}/{amt?}',  [FedapayController::class, 'retainerGetFedapayStatus'])->name('retainer.fedapay.status')->middleware(['auth','XSS']);
+Route::any('retainer-fedapay-payment/{id}', [FedapayController::class, 'retainerPayWithFedapay'])->name('retainer.with.fedapay')->middleware(['auth', 'XSS']);
+Route::any('retainer-fedapay-status/{id}/{amt?}',  [FedapayController::class, 'retainerGetFedapayStatus'])->name('retainer.fedapay.status')->middleware(['auth', 'XSS']);
 
 //Payhere
-Route::any('retainer-payhere-payment/{id}', [PayHereController::class, 'retainerPayWithPayHere'])->name('retainer.with.payhere')->middleware(['auth','XSS']);
-Route::any('retainer-payhere-status/{id}/{amt?}',  [PayHereController::class, 'retainerGetPayHereStatus'])->name('retainer.payhere.status')->middleware(['auth','XSS']);
+Route::any('retainer-payhere-payment/{id}', [PayHereController::class, 'retainerPayWithPayHere'])->name('retainer.with.payhere')->middleware(['auth', 'XSS']);
+Route::any('retainer-payhere-status/{id}/{amt?}',  [PayHereController::class, 'retainerGetPayHereStatus'])->name('retainer.payhere.status')->middleware(['auth', 'XSS']);
 
 //Tap
 Route::any('retainer-tap-payment/', [TapPaymentController::class, 'retainerPayWithTap'])->name('retainer.with.tap')->middleware(['XSS']);
@@ -1198,14 +1215,12 @@ Route::any('retainer-tap-status/',  [TapPaymentController::class, 'retainerGetTa
 
 //AuthorizeNet
 Route::any('/retainer-authorizenet-payment', [AuthorizeNetController::class, 'retainerPayWithAuthorizeNet'])->name('retainer.with.authorizenet');
-Route::any('/retainer-get-authorizenet-status',[AuthorizeNetController::class,'getRetainerPaymentStatus'])->name('retainer.get.authorizenet.status');
+Route::any('/retainer-get-authorizenet-status', [AuthorizeNetController::class, 'getRetainerPaymentStatus'])->name('retainer.get.authorizenet.status');
 
 //Khalti
 Route::any('/retainer-khalti-payment', [KhaltiPaymentController::class, 'retainerPayWithKhalti'])->name('retainer.with.khalti');
-Route::any('/retainer-get-khalti-status',[KhaltiPaymentController::class,'getRetainerPaymentStatus'])->name('retainer.get.khalti.status');
+Route::any('/retainer-get-khalti-status', [KhaltiPaymentController::class, 'getRetainerPaymentStatus'])->name('retainer.get.khalti.status');
 
 //ozow
 Route::any('/retainer-ozow-payment', [OzowPaymentController::class, 'retainerPayWithozow'])->name('retainer.with.ozow');
-Route::any('/retainer-get-ozow-status/{id}',[OzowPaymentController::class,'getRetainerPaymentStatus'])->name('retainer.get.ozow.status');
-
-
+Route::any('/retainer-get-ozow-status/{id}', [OzowPaymentController::class, 'getRetainerPaymentStatus'])->name('retainer.get.ozow.status');
