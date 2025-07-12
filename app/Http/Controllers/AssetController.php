@@ -69,6 +69,7 @@ class AssetController extends Controller
             $assets->code_active    = $request->code_active;
             $assets->code_active_category    = $request->code_active_category;
             $assets->date_garantia    = $request->date_garantia;
+            $assets->proveedor_id    = $request->proveedor_id;       
             $assets->save();
 
             return redirect()->route('account-assets.index')->with('success', __('Assets successfully created.'));
@@ -91,8 +92,9 @@ class AssetController extends Controller
         if(\Auth::user()->can('edit assets'))
         {
             $asset = Asset::find($id);
+            $proveedores = Vender::all()->pluck('name', 'id');
 
-            return view('assets.edit', compact('asset'));
+            return view('assets.edit', compact('asset', 'proveedores'));
         }
         else
         {

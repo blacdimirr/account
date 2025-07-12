@@ -52,7 +52,7 @@
         </div>
         <div class="form-group col-md-6">
             {{ Form::label('proveedor_id', __('Proveedor'), ['class' => 'form-label']) }}<x-required></x-required>
-            {{ Form::select('proveedor_id', $proveedores, null, 
+            {{ Form::select('proveedor_id', $proveedores,'', 
             ['class' => 'form-control select', 'id' => 'proveedor_id', 'data-url' => route('bill.vender'), 'required' => 'required']) }}
         </div>
         <div class="form-group col-md-12">

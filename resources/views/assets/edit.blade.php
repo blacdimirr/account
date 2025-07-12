@@ -50,6 +50,11 @@
             {{ Form::label('supported_date', __('Supported Date'), ['class' => 'form-label']) }}<x-required></x-required>
             {{ Form::date('supported_date', null, ['class' => 'form-control pc-datepicker-1', 'required' => 'required']) }}
         </div>
+        <div class="form-group col-md-6">
+            {{ Form::label('proveedor_id', __('Proveedor'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::select('proveedor_id', $proveedores, null, 
+            ['class' => 'form-control select', 'id' => 'proveedor_id', 'data-url' => route('bill.vender'), 'required' => 'required']) }}
+        </div>
         <div class="form-group col-md-12">
             {{ Form::label('description', __('Description'), ['class' => 'form-label']) }}
             {{ Form::textarea('description', null, ['class' => 'form-control', 'rows' => 3, 'placeholder'=>__('Enter Description')]) }}
