@@ -301,6 +301,15 @@ class BillController extends Controller
 
             $bill_number      = \Auth::user()->billNumberFormat($bill->bill_id);
             $venders          = Vender::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
+
+            $estatus = [
+                0 => 'Draft',
+                1 => 'Sent',
+                2 => 'Unpaid',
+                3 => 'Partialy Paid',
+                4 => 'Paid',
+            ];
+
             $product_services = ProductService::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
 
             $bill->customField = CustomField::getData($bill, 'bill');
@@ -339,7 +348,7 @@ class BillController extends Controller
                 }
             }
 
-            return view('bill.edit', compact('venders', 'product_services', 'bill', 'bill_number', 'category', 'customFields', 'chartAccounts', 'items', 'subAccounts'));
+            return view('bill.edit', compact('venders', 'product_services', 'bill', 'bill_number', 'category', 'customFields', 'chartAccounts', 'items', 'subAccounts', 'estatus'));
         } else {
             return response()->json(['error' => __('Permission denied.')], 401);
         }
@@ -370,6 +379,7 @@ class BillController extends Controller
                 $bill->order_number   = $request->order_number;
                 //                $bill->discount_apply = isset($request->discount_apply) ? 1 : 0;
                 $bill->category_id    = $request->category_id;
+                $bill->status         = $request->estatus_id;
                 $bill->save();
                 CustomField::saveData($bill, $request->customField);
                 $products = $request->items;
@@ -990,6 +1000,12 @@ class BillController extends Controller
         $vender = Vender::where('id', '=', $request->id)->first();
 
         return view('bill.vender_detail', compact('vender'));
+    }
+
+    public function estatus_bills($bill_id)
+    {
+        $bill  = Bill::where('id', $bill_id)->first();
+        return response()->json(['status' => $bill->status, 'bill_id' => $bill->id, 'message' => __('Bill status successfully changed.')]);
     }
 
 

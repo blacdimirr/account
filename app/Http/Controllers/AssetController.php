@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use Illuminate\Http\Request;
+use App\Models\Vender;
+
 
 class AssetController extends Controller
 {
@@ -27,7 +29,8 @@ class AssetController extends Controller
         if(\Auth::user()->can('create assets'))
         {
 
-            return view('assets.create');
+            $proveedor = Vender::all()->pluck('name', 'id');
+            return view('assets.create', ['proveedores' => $proveedor]);
         }
         else
         {
@@ -62,6 +65,10 @@ class AssetController extends Controller
             $assets->amount         = $request->amount;
             $assets->description    = $request->description;
             $assets->created_by     = \Auth::user()->creatorId();
+            $assets->area    = $request->area;
+            $assets->code_active    = $request->code_active;
+            $assets->code_active_category    = $request->code_active_category;
+            $assets->date_garantia    = $request->date_garantia;
             $assets->save();
 
             return redirect()->route('account-assets.index')->with('success', __('Assets successfully created.'));
@@ -121,6 +128,10 @@ class AssetController extends Controller
                 $asset->supported_date = $request->supported_date;
                 $asset->amount         = $request->amount;
                 $asset->description    = $request->description;
+                $asset->area    = $request->area;
+                $asset->code_active    = $request->code_active;
+                $asset->code_active_category    = $request->code_active_category;
+                $asset->date_garantia    = $request->date_garantia;
                 $asset->save();
 
                 return redirect()->route('account-assets.index')->with('success', __('Assets successfully updated.'));

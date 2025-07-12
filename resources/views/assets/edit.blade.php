@@ -15,7 +15,7 @@
                 </a>
             </div>
         @endif
-        <div class="form-group col-md-6">
+         <div class="form-group col-md-6">
             {{ Form::label('name', __('Name'), ['class' => 'form-label']) }}<x-required></x-required>
             {{ Form::text('name', null, ['class' => 'form-control', 'required' => 'required', 'placeholder'=>__('Enter Name')]) }}
         </div>
@@ -23,16 +23,32 @@
             {{ Form::label('amount', __('Amount'), ['class' => 'form-label']) }}<x-required></x-required>
             {{ Form::number('amount', null, ['class' => 'form-control', 'required' => 'required', 'step' => '0.01', 'placeholder'=>__('Enter Amount')]) }}
         </div>
+
+        <div class="form-group col-md-6">
+            {{ Form::label('area', __('Area'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::text('area', null, ['class' => 'form-control', 'required' => 'required', 'placeholder'=>__('Ingrese el Area')]) }}
+        </div>
+
+        <div class="form-group col-md-6">
+            {{ Form::label('code_active', __('Codigo De Activo'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::text('code_active', null, ['class' => 'form-control', 'required' => 'required', 'placeholder'=>__('Ingrese el Codigo de Activo')]) }}
+        </div>
+        <div class="form-group col-md-6">
+            {{ Form::label('code_active_category', __('Categoria De Activo'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::text('code_active_category', null, ['class' => 'form-control', 'required' => 'required', 'placeholder'=>__('Ingrese la Categoria de Codigo de Activo')]) }}
+        </div>
+
         <div class="form-group col-md-6">
             {{ Form::label('purchase_date', __('Purchase Date'), ['class' => 'form-label']) }}<x-required></x-required>
-            {{ Form::date('purchase_date', null, ['class' => 'form-control', 'required' => 'required']) }}
-
+            {{ Form::date('purchase_date', null, ['class' => 'form-control pc-datepicker-1', 'required' => 'required']) }}
+        </div>
+        <div class="form-group col-md-6">
+            {{ Form::label('date_garantia', __('Fecha De Garantia'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::date('date_garantia', null, ['class' => 'form-control pc-datepicker-1', 'required' => 'required']) }}
         </div>
         <div class="form-group col-md-6">
             {{ Form::label('supported_date', __('Supported Date'), ['class' => 'form-label']) }}<x-required></x-required>
-            {{ Form::date('supported_date', null, ['class' => 'form-control', 'required' => 'required']) }}
-
-
+            {{ Form::date('supported_date', null, ['class' => 'form-control pc-datepicker-1', 'required' => 'required']) }}
         </div>
         <div class="form-group col-md-12">
             {{ Form::label('description', __('Description'), ['class' => 'form-label']) }}

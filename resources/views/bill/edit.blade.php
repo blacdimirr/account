@@ -156,13 +156,13 @@
 
             });
         });
+
         $(document).on('click', '#remove', function () {
             $('#vender-box').removeClass('d-none');
             $('#vender-box').addClass('d-block');
             $('#vender_detail').removeClass('d-block');
             $('#vender_detail').addClass('d-none');
         });
-
         $(document).on('change', '.item', function () {
             changeItem($(this));
         });
@@ -740,6 +740,15 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                            <div class="form-group" id="estatus-box">
+                                {{ Form::label('estatus_id', __('Estatus'), ['class' => 'form-label']) }}
+                                {{ Form::select('estatus_id', $estatus, $bill->status, ['class' => 'form-control select', 'id' => 'estatus', 'data-url' => route('bill.estatus_bills'), 'required' => 'required']) }}
+                              
+                            </div>
+                            <div id="estatus_detail" class="d-none">
+                            </div>
+                        </div>
                                 @if (!$customFields->isEmpty())
                                     <div class="col-md-6">
                                         <div class="tab-pane fade show" id="tab-2" role="tabpanel">

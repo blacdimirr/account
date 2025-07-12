@@ -25,12 +25,35 @@
         </div>
 
         <div class="form-group col-md-6">
+            {{ Form::label('area', __('Area'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::text('area', '', ['class' => 'form-control', 'required' => 'required', 'placeholder'=>__('Ingrese el Area')]) }}
+        </div>
+
+        <div class="form-group col-md-6">
+            {{ Form::label('code_active', __('Codigo De Activo'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::text('code_active', '', ['class' => 'form-control', 'required' => 'required', 'placeholder'=>__('Ingrese el Codigo de Activo')]) }}
+        </div>
+        <div class="form-group col-md-6">
+            {{ Form::label('code_active_category', __('Categoria De Activo'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::text('code_active_category', '', ['class' => 'form-control', 'required' => 'required', 'placeholder'=>__('Ingrese la Categoria de Codigo de Activo')]) }}
+        </div>
+
+        <div class="form-group col-md-6">
             {{ Form::label('purchase_date', __('Purchase Date'), ['class' => 'form-label']) }}<x-required></x-required>
             {{ Form::date('purchase_date', date('Y-m-d'), ['class' => 'form-control pc-datepicker-1', 'required' => 'required']) }}
         </div>
         <div class="form-group col-md-6">
+            {{ Form::label('date_garantia', __('Fecha De Garantia'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::date('date_garantia', date('Y-m-d'), ['class' => 'form-control pc-datepicker-1', 'required' => 'required']) }}
+        </div>
+        <div class="form-group col-md-6">
             {{ Form::label('supported_date', __('Supported Date'), ['class' => 'form-label']) }}<x-required></x-required>
             {{ Form::date('supported_date', date('Y-m-d'), ['class' => 'form-control pc-datepicker-1', 'required' => 'required']) }}
+        </div>
+        <div class="form-group col-md-6">
+            {{ Form::label('proveedor_id', __('Proveedor'), ['class' => 'form-label']) }}<x-required></x-required>
+            {{ Form::select('proveedor_id', $proveedores, null, 
+            ['class' => 'form-control select', 'id' => 'proveedor_id', 'data-url' => route('bill.vender'), 'required' => 'required']) }}
         </div>
         <div class="form-group col-md-12">
             {{ Form::label('description', __('Description'), ['class' => 'form-label']) }}

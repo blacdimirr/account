@@ -12,6 +12,17 @@ class Asset extends Model
         'supported_date',
         'amount',
         'description',
+
+        //new fields
+        'area',
+        'code_active',
+        'code_active_category',
+        'date_garantia',
+
+
+        //new fields 2
+        'proveedor_id',
+        
         'created_by',
     ];
 

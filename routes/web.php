@@ -753,6 +753,7 @@ Route::group(
 
         Route::post('bill/product', [BillController::class, 'product'])->name('bill.product');
         Route::post('bill/vender', [BillController::class, 'vender'])->name('bill.vender');
+        Route::post('bill/estatus_bills', [BillController::class, 'estatus_bills'])->name('bill.estatus_bills');
         Route::get('bill/{id}/sent', [BillController::class, 'sent'])->name('bill.sent');
         Route::get('bill/{id}/resent', [BillController::class, 'resent'])->name('bill.resent');
 
