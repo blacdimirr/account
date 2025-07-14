@@ -138,19 +138,19 @@
                                         <td>
                                             @if ($bill->status == 0)
                                                 <span
-                                                    class="badge fix_badges bg-secondary p-2 px-3">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                                    class="badge fix_badges bg-secondary p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                             @elseif($bill->status == 1)
                                                 <span
-                                                    class="badge fix_badges bg-warning p-2 px-3">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                                    class="badge fix_badges bg-warning p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                             @elseif($bill->status == 2)
                                                 <span
-                                                    class="badge fix_badges bg-danger p-2 px-3">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                                    class="badge fix_badges bg-danger p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                             @elseif($bill->status == 3)
                                                 <span
-                                                    class="badge fix_badges bg-info p-2 px-3">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                                    class="badge fix_badges bg-info p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                             @elseif($bill->status == 4)
                                                 <span
-                                                    class="badge fix_badges bg-primary p-2 px-3">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                                    class="badge fix_badges bg-primary p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                             @endif
                                         </td>
                                         @if (Gate::check('edit bill') || Gate::check('delete bill') || Gate::check('show bill'))

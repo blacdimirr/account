@@ -171,15 +171,15 @@
                                     <td>{{\Auth::user()->priceFormat($bill->getDue())  }}</td>
                                     <td>
                                         @if($bill->status == 0)
-                                            <span class="badge bg-primary p-2 px-3 fix_badges">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                            <span class="badge bg-primary p-2 px-3 fix_badges">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($bill->status == 1)
-                                            <span class="badge bg-warning p-2 px-3 fix_badges">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                            <span class="badge bg-warning p-2 px-3 fix_badges">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($bill->status == 2)
-                                            <span class="badge bg-danger p-2 px-3 fix_badges">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                            <span class="badge bg-danger p-2 px-3 fix_badges">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($bill->status == 3)
-                                            <span class="badge bg-info p-2 px-3 fix_badges">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                            <span class="badge bg-info p-2 px-3 fix_badges">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($bill->status == 4)
-                                            <span class="badge bg-success p-2 px-3 fix_badges">{{ __(\App\Models\Invoice::$statues[$bill->status]) }}</span>
+                                            <span class="badge bg-success p-2 px-3 fix_badges">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @endif
                                     </td>
                                     @if(Gate::check('edit bill') || Gate::check('delete bill') || Gate::check('show bill'))

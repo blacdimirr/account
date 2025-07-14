@@ -17,15 +17,6 @@ class Invoice extends Model
         'created_by',
     ];
 
-    public static $statues = [
-        'Draft',
-        'Sent',
-        'Unpaid',
-        'Partialy Paid',
-        'Paid',
-    ];
-
-
     public function tax()
     {
         return $this->hasOne('App\Models\Tax', 'id', 'tax_id');

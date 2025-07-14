@@ -135,15 +135,15 @@
                                     <td>{{ Auth::user()->dateFormat($proposal->issue_date) }}</td>
                                     <td>
                                         @if($proposal->status == 0)
-                                            <span class="badge fix_badge bg-primary p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badge bg-primary p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($proposal->status == 1)
-                                            <span class="badge fix_badge bg-info p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badge bg-info p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($proposal->status == 2)
-                                            <span class="badge fix_badge bg-secondary p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badge bg-secondary p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($proposal->status == 3)
-                                            <span class="badge fix_badge bg-warning p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badge bg-warning p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($proposal->status == 4)
-                                            <span class="badge fix_badge bg-danger p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badge bg-danger p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @endif
                                     </td>
                                     @if(Gate::check('edit proposal') || Gate::check('delete proposal') || Gate::check('show proposal'))

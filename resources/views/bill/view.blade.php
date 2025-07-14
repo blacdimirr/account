@@ -325,19 +325,19 @@ $('.cp_link_document_auth_approved').on('click', function() {
                                         <strong>{{ __('Status') }} :</strong><br>
                                         @if ($bill->status == 0)
                                             <span
-                                                class="badge fix_badge bg-primary p-2 px-3">{{ __(\App\Models\Bill::$statues[$bill->status]) }}</span>
+                                                class="badge fix_badge bg-primary p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($bill->status == 1)
                                             <span
-                                                class="badge fix_badge bg-info p-2 px-3">{{ __(\App\Models\Bill::$statues[$bill->status]) }}</span>
+                                                class="badge fix_badge bg-info p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($bill->status == 2)
                                             <span
-                                                class="badge fix_badge bg-danger p-2 px-3">{{ __(\App\Models\Bill::$statues[$bill->status]) }}</span>
+                                                class="badge fix_badge bg-danger p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($bill->status == 3)
                                             <span
-                                                class="badge fix_badge bg-warning p-2 px-3">{{ __(\App\Models\Bill::$statues[$bill->status]) }}</span>
+                                                class="badge fix_badge bg-warning p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($bill->status == 4)
                                             <span
-                                                class="badge fix_badge bg-danger p-2 px-3">{{ __(\App\Models\Bill::$statues[$bill->status]) }}</span>
+                                                class="badge fix_badge bg-danger p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @endif
                                     </small>
                                 </div>

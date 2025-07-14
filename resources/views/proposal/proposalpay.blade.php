@@ -119,15 +119,15 @@
                                     <small>
                                         <strong>{{__('Status')}} :</strong><br>
                                         @if($proposal->status == 0)
-                                            <span class="badge fix_badges bg-primary p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badges bg-primary p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($proposal->status == 1)
-                                            <span class="badge fix_badges bg-info p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badges bg-info p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($proposal->status == 2)
-                                            <span class="badge fix_badges bg-success p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badges bg-success p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($proposal->status == 3)
-                                            <span class="badge fix_badges bg-warning p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badges bg-warning p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($proposal->status == 4)
-                                            <span class="badge fix_badges bg-danger p-2 px-3">{{ __(\App\Models\Proposal::$statues[$proposal->status]) }}</span>
+                                            <span class="badge fix_badges bg-danger p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @endif
                                     </small>
                                 </div>

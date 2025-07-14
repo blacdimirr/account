@@ -314,15 +314,15 @@
                                                     <td>{{!empty($invoice->category)?$invoice->category->name:'-'}}</td>
                                                     <td>
                                                         @if($invoice->status == 0)
-                                                            <span class="badge fix_badges bg-primary p-2 px-3">{{ __(\App\Models\Invoice::$statues[$invoice->status]) }}</span>
+                                                            <span class="badge fix_badges bg-primary p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                                         @elseif($invoice->status == 1)
-                                                            <span class="badge fix_badges bg-warning p-2 px-3">{{ __(\App\Models\Invoice::$statues[$invoice->status]) }}</span>
+                                                            <span class="badge fix_badges bg-warning p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                                         @elseif($invoice->status == 2)
-                                                            <span class="badge fix_badges bg-danger p-2 px-3">{{ __(\App\Models\Invoice::$statues[$invoice->status]) }}</span>
+                                                            <span class="badge fix_badges bg-danger p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                                         @elseif($invoice->status == 3)
-                                                            <span class="badge fix_badges bg-info p-2 px-3">{{ __(\App\Models\Invoice::$statues[$invoice->status]) }}</span>
+                                                            <span class="badge fix_badges bg-info p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                                         @elseif($invoice->status == 4)
-                                                            <span class="badge fix_badges bg-success p-2 px-3">{{ __(\App\Models\Invoice::$statues[$invoice->status]) }}</span>
+                                                            <span class="badge fix_badges bg-success p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                                         @endif
                                                     </td>
                                                     <td> {{\Auth::user()->priceFormat($invoice->getTotal()-$invoice->getDue())}}</td>

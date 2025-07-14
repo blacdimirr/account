@@ -40,7 +40,7 @@ class RetainerController extends Controller
             $customer = Customer::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $customer->prepend('Select Customer', '');
 
-            $status = Retainer::$statues;
+            $status = Status::getAllAsArray();
 
             $query = Retainer::where('created_by', '=', \Auth::user()->creatorId());
 
@@ -119,7 +119,7 @@ class RetainerController extends Controller
 
                 return redirect()->back()->with('error', $messages->first());
             }
-            $status = Retainer::$statues;
+            $status = Status::getAllAsArray();
 
             $retainer                 = new Retainer();
             $retainer->retainer_id    = $this->retainerNumber();
@@ -171,7 +171,7 @@ class RetainerController extends Controller
                 if ($retainer->created_by == \Auth::user()->creatorId()) {
                     $customer = $retainer->customer;
                     $iteams   = $retainer->items;
-                    $status   = Retainer::$statues;
+                    $status   = Status::getAllAsArray();
 
                     $retainer->customField = CustomField::getData($retainer, 'retainer');
                     $customFields          = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'retainer')->get();
@@ -1129,7 +1129,7 @@ class RetainerController extends Controller
 
         if (\Auth::user()->can('manage customer proposal')) {
 
-            $status = Retainer::$statues;
+            $status = Status::getAllAsArray();
 
             $query = Retainer::where('customer_id', '=', \Auth::user()->id)->where('status', '!=', '0')->where('created_by', \Auth::user()->creatorId());
 

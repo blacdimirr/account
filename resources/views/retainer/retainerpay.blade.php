@@ -536,19 +536,19 @@
                                         <strong>{{ __('Status') }} :</strong><br>
                                         @if ($retainer->status == 0)
                                             <span
-                                                class="badge bg-primary p-2 px-3">{{ __(\App\Models\Retainer::$statues[$retainer->status]) }}</span>
+                                                class="badge bg-primary p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($retainer->status == 1)
                                             <span
-                                                class="badge bg-info p-2 px-3">{{ __(\App\Models\Retainer::$statues[$retainer->status]) }}</span>
+                                                class="badge bg-info p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($retainer->status == 2)
                                             <span
-                                                class="badge bg-secondary p-2 px-3">{{ __(\App\Models\Retainer::$statues[$retainer->status]) }}</span>
+                                                class="badge bg-secondary p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($retainer->status == 3)
                                             <span
-                                                class="badge bg-warning p-2 px-3">{{ __(\App\Models\Retainer::$statues[$retainer->status]) }}</span>
+                                                class="badge bg-warning p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @elseif($retainer->status == 4)
                                             <span
-                                                class="badge bg-danger p-2 px-3">{{ __(\App\Models\Retainer::$statues[$retainer->status]) }}</span>
+                                                class="badge bg-danger p-2 px-3">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
                                         @endif
                                     </small>
                                 </div>

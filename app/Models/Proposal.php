@@ -17,18 +17,6 @@ class Proposal extends Model
         'created_by',
     ];
 
-    public static $statues = [
-        'Draft',
-        //0
-        'Open',
-        //1
-        'Accepted',
-        //2
-        'Declined',
-        //3
-        'Close',
-        //4
-    ];
 
 
     public function tax()

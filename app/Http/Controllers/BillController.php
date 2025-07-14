@@ -28,6 +28,7 @@ use App\Exports\BillExport;
 use App\Models\BillAccount;
 use App\Models\ChartOfAccount;
 use App\Models\DebitNote;
+use App\Models\Status;
 use App\Models\TransactionLines;
 use Exception;
 
@@ -41,7 +42,7 @@ class BillController extends Controller
             $vender = Vender::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $vender->prepend('Select Vendor', '');
 
-            $status = Bill::$statues;
+            $status = Status::getAllAsArray();
 
             $query = Bill::where('created_by', '=', \Auth::user()->creatorId());
             if (!empty($request->vender)) {
@@ -302,13 +303,7 @@ class BillController extends Controller
             $bill_number      = \Auth::user()->billNumberFormat($bill->bill_id);
             $venders          = Vender::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
 
-            $estatus = [
-                0 => 'Draft',
-                1 => 'Sent',
-                2 => 'Unpaid',
-                3 => 'Partialy Paid',
-                4 => 'Paid',
-            ];
+            $estatus = Status::getAllAsArray();
 
             $product_services = ProductService::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
 
@@ -945,7 +940,7 @@ class BillController extends Controller
     {
         if (\Auth::user()->can('manage vender bill')) {
 
-            $status = Bill::$statues;
+            $status = Status::getAllAsArray();
 
             $query = Bill::where('vender_id', '=', \Auth::user()->vender_id)->where('status', '!=', '0')->where('created_by', \Auth::user()->creatorId());
 

@@ -18,17 +18,6 @@ class Retainer extends Model
         'created_by',
     ];
 
-    
-
-    public static $statues = [
-        'Draft',
-        'Sent',
-        'Unpaid',
-        'Partialy Paid',
-        'Paid',
-    ];
-
-
     public function customer()
     {
         return $this->hasOne('App\Models\Customer', 'id', 'customer_id');

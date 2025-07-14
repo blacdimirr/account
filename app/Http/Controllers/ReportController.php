@@ -26,6 +26,7 @@ use App\Exports\ProductStockExport;
 use App\Exports\ProfitLossExport;
 use App\Exports\TrialBalancExport;
 use App\Models\ChartOfAccountParent;
+use App\Models\Status;
 use App\Models\TransactionLines;
 use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
@@ -2248,14 +2249,14 @@ class ReportController extends Controller
 
             $customer = Customer::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'customer_id');
             $customer->prepend('Select Customer', '');
-            $status = Invoice::$statues;
+            $status = Status::getAllAsArray();
 
             $invoices = Invoice::with('payments')->selectRaw('invoices.*,MONTH(send_date) as month,YEAR(send_date) as year');
 
             if ($request->status != '') {
                 $invoices->where('status', $request->status);
 
-                $filter['status'] = Invoice::$statues[$request->status];
+                $filter['status'] = Status::getNameById($request->status);
             } else {
                 $invoices->where('status', '!=', 0);
             }
@@ -2327,7 +2328,7 @@ class ReportController extends Controller
 
             $vender = Vender::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'vender_id');
             $vender->prepend('Select Vendor', '');
-            $status = Bill::$statues;
+            $status = $status = Status::getAllAsArray();
 
             $bills = Bill::selectRaw('bills.*,MONTH(send_date) as month,YEAR(send_date) as year');
 
@@ -2355,7 +2356,7 @@ class ReportController extends Controller
             if ($request->status != '') {
                 $bills->where('status', '=', $request->status);
 
-                $filter['status'] = Bill::$statues[$request->status];
+                $filter['status'] = Status::getNameById($request->status);
             } else {
                 $bills->where('status', '!=', 0);
             }

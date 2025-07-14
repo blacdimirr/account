@@ -43,7 +43,7 @@ class ProposalController extends Controller
             $customer = Customer::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $customer->prepend('Select Customer', '');
 
-            $status = Proposal::$statues;
+            $status = Status::getAllAsArray();
 
             $query = Proposal::where('created_by', '=', \Auth::user()->creatorId());
 
@@ -136,7 +136,7 @@ class ProposalController extends Controller
 
                 return redirect()->back()->with('error', $messages->first());
             }
-            $status = Proposal::$statues;
+            $status = Status::getAllAsArray();
 
             $proposal                 = new Proposal();
             $proposal->proposal_id    = $this->proposalNumber();
@@ -306,7 +306,7 @@ class ProposalController extends Controller
                 if ($proposal->created_by == \Auth::user()->creatorId()) {
                     $customer = $proposal->customer;
                     $iteams   = $proposal->items;
-                    $status   = Proposal::$statues;
+                    $status   = Status::getAllAsArray();
 
                     $proposal->customField = CustomField::getData($proposal, 'proposal');
                     $customFields          = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'proposal')->get();
@@ -353,7 +353,7 @@ class ProposalController extends Controller
     {
         if (\Auth::user()->can('manage customer proposal')) {
 
-            $status = Proposal::$statues;
+            $status = Status::getAllAsArray();
 
             $query = Proposal::where('customer_id', '=', \Auth::user()->id)->where('status', '!=', '0')->where('created_by', \Auth::user()->creatorId());
 
@@ -849,7 +849,7 @@ class ProposalController extends Controller
             $proposal = Proposal::where('id', '=', $proposal_id)->first();
 
             if (!empty($proposal)) {
-                $status = Proposal::$statues;
+                $status = Status::getAllAsArray();
                 $item = $proposal->items ?? '';
                 $ownerId = !empty($proposal->created_by) ? $proposal->created_by : 0;
 

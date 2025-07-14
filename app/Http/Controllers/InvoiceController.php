@@ -15,7 +15,7 @@ use App\Models\StockReport;
 use App\Models\Task;
 use App\Models\Transaction;
 use App\Models\Utility;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -26,6 +26,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\InvoiceExport;
 use App\Models\CreditNote;
 use App\Models\TransactionLines;
+use App\Models\Status;
 use Exception;
 
 class InvoiceController extends Controller
@@ -43,7 +44,7 @@ class InvoiceController extends Controller
             $customer = Customer::where('created_by', '=', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $customer->prepend('Select Customer', '');
 
-            $status = Invoice::$statues;
+            $status = Status::getAllAsArray();
 
             $query = Invoice::where('created_by', '=', \Auth::user()->creatorId());
 
@@ -146,7 +147,7 @@ class InvoiceController extends Controller
 
                 return redirect()->back()->with('error', $messages->first());
             }
-            $status = Invoice::$statues;
+            $status = Status::getAllAsArray();
 
             $invoice                 = new Invoice();
             $invoice->invoice_id     = $this->invoiceNumber();
@@ -458,7 +459,7 @@ class InvoiceController extends Controller
     {
         if (\Auth::user()->can('manage customer invoice')) {
 
-            $status = Invoice::$statues;
+            $status = Status::getAllAsArray();
 
             $query = Invoice::where('customer_id', '=', \Auth::user()->id)->where('status', '!=', '0')->where('created_by', \Auth::user()->creatorId());
 
