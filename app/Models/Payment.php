@@ -16,6 +16,7 @@ class Payment extends Model
         'payment_method',
         'reference',
         'created_by',
+        'ncf',
     ];
 
     public function category()

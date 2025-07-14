@@ -105,6 +105,7 @@ class PaymentController extends Controller
             $payment->payment_method = 0;
             $payment->reference      = $request->reference;
             $payment->description    = $request->description ?? '-';
+            $payment->ncf           = $request->ncf ?? '-';
             if (!empty($request->add_receipt)) {
                 $image_size = $request->file('add_receipt')->getSize();
                 $fileName = time() . "_" . $request->add_receipt->getClientOriginalName();
@@ -270,6 +271,7 @@ class PaymentController extends Controller
             $payment->payment_method = 0;
             $payment->reference      = $request->reference;
             $payment->description    = $request->description;
+            $payment->ncf           = $request->ncf ?? '-';
 
             if (!empty($request->add_receipt)) {
 

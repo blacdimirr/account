@@ -28,6 +28,12 @@
                 {{ __('Create vendor here.') }} <a href="{{ route('vender.index') }}"><b>{{ __('Create vendor') }}</b></a>
             </div>
         </div>
+         <div class="form-group col-md-6">
+            {{ Form::label('ncf', __('NCF'),['class'=>'form-label']) }}
+            <div class="form-icon-user">
+                {{ Form::text('ncf', '', array('class' => 'form-control', 'placeholder'=>__('Enter ncf'))) }}
+            </div>
+        </div>
         <div class="form-group  col-md-12">
             {{ Form::label('description', __('Description'),['class'=>'form-label']) }}
             {{ Form::textarea('description', '', array('class' => 'form-control','rows'=>3, 'placeholder'=>__('Enter Description'))) }}

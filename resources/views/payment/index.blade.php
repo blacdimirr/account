@@ -49,6 +49,12 @@
                                             {{ Form::select('account',$account,isset($_GET['account'])?$_GET['account']:'', array('class' => 'form-control select' ,'id'=>'choices-multiple')) }}
                                         </div>
                                     </div>
+                                      <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
+                                        <div class="btn-box">
+                                            {{ Form::label('ncf', __('Ncf'),['class'=>'text-type']) }}
+                                            {{ Form::select('ncf',$account,isset($_GET['ncf'])?$_GET['ncf']:'', array('class' => 'form-control select' ,'id'=>'choices-multiple')) }}
+                                        </div>
+                                    </div>
                                     <div class="col-xl-3 col-lg-3 col-md-6 col-sm-12 col-12">
                                         <div class="btn-box">
                                             {{ Form::label('vender', __('Vendor'),['class'=>'text-type']) }}
@@ -95,6 +101,7 @@
                             <tr>
                                 <th>{{__('Date')}}</th>
                                 <th>{{__('Amount')}}</th>
+                                <th>{{__('Ncf')}}</th>
                                 <th>{{__('Account')}}</th>
                                 <th>{{__('Vendor')}}</th>
                                 <th>{{__('Category')}}</th>
@@ -115,6 +122,7 @@
                                 <tr class="font-style">
                                     <td>{{  Auth::user()->dateFormat($payment->date)}}</td>
                                     <td>{{  Auth::user()->priceFormat($payment->amount)}}</td>
+                                    <td>{{  !empty($payment->ncf)?$payment->ncf:'-'}}</td>
                                     <td>{{ !empty($payment->bankAccount)?$payment->bankAccount->bank_name.' '.$payment->bankAccount->holder_name:''}}</td>
                                     <td>{{  !empty($payment->vender)?$payment->vender->name:'-'}}</td>
                                     <td>{{  !empty($payment->category)?$payment->category->name:'-'}}</td>

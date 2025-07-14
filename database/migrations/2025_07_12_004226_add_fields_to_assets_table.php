@@ -9,13 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('assets', function (Blueprint $table) {
-            $table->unsignedBigInteger('proveedor_id')->nullable();
+
+            if (!Schema::hasColumn('assets', 'proveedor_id')) {
+                 $table->unsignedBigInteger('proveedor_id')->nullable();
 
             // Asegúrate de que 'vender_id' en 'venders' tenga un índice único
             $table->foreign('proveedor_id')
                 ->references('vender_id')
                 ->on('venders')
                 ->onDelete('set null');
+            }
+
+           
         });
     }
 
