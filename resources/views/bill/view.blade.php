@@ -96,13 +96,13 @@ $('.cp_link_document_auth_approved').on('click', function() {
             data-link="{{ route('pay.billpay', \Illuminate\Support\Facades\Crypt::encrypt($bill->id)) }}"
             data-bs-toggle="tooltip" title="{{ __('enviar solicitud de transferencia') }}"
             data-original-title="{{ __('Click to send authorization document') }}">
-            <span class="btn-inner--icon text-white"><i class="ti ti-share"></i></span>
+            <span class="btn-inner--icon text-white"><i class="ti ti-files"></i></span>
         </a>
          <a href="#" class="btn btn-sm btn-info cp_link_document_auth_approved"
             data-link="{{ route('pay.billpay', \Illuminate\Support\Facades\Crypt::encrypt($bill->id)) }}"
             data-bs-toggle="tooltip" title="{{ __('generar documento transferencia aprovada') }}"
             data-original-title="{{ __('Click to send document') }}">
-            <span class="btn-inner--icon text-white"><i class="ti ti-share"></i></span>
+            <span class="btn-inner--icon text-white"><i class="ti ti-receipt"></i></span>
         </a>
         <a href="#" class="btn btn-sm btn-primary cp_link"
             data-link="{{ route('pay.billpay', \Illuminate\Support\Facades\Crypt::encrypt($bill->id)) }}"

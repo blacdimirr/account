@@ -18,6 +18,7 @@
         "iyzico/iyzipay-php": "^2.0",
         "kkomelin/laravel-translatable-string-exporter": "^1.22",
         "konekt/html": "^6.5",
+        "kwn/number-to-words": "^2.12",
         "lahirulhr/laravel-payhere": "^1.0",
         "laravel/framework": "^11.9",
         "laravel/sanctum": "^4.0",

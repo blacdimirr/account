@@ -40,7 +40,7 @@
 <body>
 
     <div class="logo">SAN LORENZO DE LOS MINA</div>
-    <p><strong>10 de enero 2025</strong></p>
+    <p><strong>{{$obj['fecha_venta']}}</strong></p>
     <p><strong>Transf. #0001</strong> Cuenta Operativa 010-390450-6</p>
 
     <p><strong>A:</strong> Licda. Milagros Martínez de la Rosa<br>
@@ -49,7 +49,7 @@
     <p><strong>Asunto:</strong> <span class="titulo">Autorización Transferencia</span></p>
 
     <p>Por este medio le autorizamos realizar la transferencia<br>
-    bancaria a la orden de: <strong>EQMAPHAR, SRL</strong></p>
+    bancaria a la orden de: <strong>{{$obj['nombreSRL']}}</strong></p>
 
     <table class="tabla-montos">
         <tr>

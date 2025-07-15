@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '65b55c29426a5f907fa995aa24662bdd1493b9d3',
+        'reference' => '5a8d6194faf47bdbaf6226b5af146bfc2c411112',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -595,6 +595,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'kwn/number-to-words' => array(
+            'pretty_version' => '2.12.0',
+            'version' => '2.12.0.0',
+            'reference' => 'c4e0cea84574bc0077121ac6a2331c183d6d1cc0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../kwn/number-to-words',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'lahirulhr/laravel-payhere' => array(
             'pretty_version' => 'v1.0.4',
             'version' => '1.0.4.0',
@@ -616,7 +625,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '65b55c29426a5f907fa995aa24662bdd1493b9d3',
+            'reference' => '5a8d6194faf47bdbaf6226b5af146bfc2c411112',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

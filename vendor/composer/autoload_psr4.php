@@ -79,6 +79,7 @@ return array(
     'Obydul\\LaraSkrill\\' => array($vendorDir . '/obydul/laraskrill/src'),
     'Nwidart\\Modules\\' => array($vendorDir . '/nwidart/laravel-modules/src'),
     'NunoMaduro\\Collision\\' => array($vendorDir . '/nunomaduro/collision/src'),
+    'NumberToWords\\' => array($vendorDir . '/kwn/number-to-words/src'),
     'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
     'Mollie\\Api\\' => array($vendorDir . '/mollie/mollie-api-php/src'),
     'Modules\\' => array($baseDir . '/Modules'),

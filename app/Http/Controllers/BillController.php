@@ -31,6 +31,8 @@ use App\Models\DebitNote;
 use App\Models\Status;
 use App\Models\TransactionLines;
 use Exception;
+use Carbon\Carbon;
+use NumberToWords\NumberToWords;
 
 class BillController extends Controller
 {
@@ -739,13 +741,38 @@ class BillController extends Controller
         }
     }
 
+    function dineroATexto($numero)
+    {
+        $numberToWords = new NumberToWords();
+
+        // Convertir parte entera a palabras
+        $numberTransformer = $numberToWords->getNumberTransformer('es');
+        $parteEntera = floor($numero);
+        $centavos = round(($numero - $parteEntera) * 100);
+
+        $montoEnLetras = strtoupper($numberTransformer->toWords($parteEntera));
+
+        return "{$montoEnLetras} PESOS CON {$centavos}/100";
+    }
+
     public function sendEmailAuth($id)
     {
         try {
+
+            $bill = Bill::with('debitNote', 'payments.bankAccount', 'items.product.unit')->find($id);
+            $vendor      = $bill->vender;
+
             $uArr = [
-                'bill_name' => "bill->name",
-                'bill_number' => "bill->bill",
-                'bill_url' => "bill->url",
+                'dirigidoA' => $vendor->billing_name,
+                'montoTotal' => \Auth::user()->priceFormat($bill->getAccountTotal()),
+                'montoTotalTexto' => $this->dineroATexto($bill->getAccountTotal()),
+                'nombreSRL' => $vendor->shipping_name,
+                'fecha_venta' => Carbon::now()->locale('es')->isoFormat('D [de] MMMM YYYY'),
+                'numero_factura' => \Auth::user()->billNumberFormat($bill->bill_id),
+                'numero_orden' => $bill->order_number,
+                'detalle' => $bill->items[0]->product['name'],
+                'ncf' => '',
+                
             ];
             $resp = Utility::sendEmailTemplateWithDocument('bill_sent', "wilbrenrosario@gmail.com", $uArr);
             return response()->json(['success' => true, 'msg' => $resp]);
@@ -758,10 +785,15 @@ class BillController extends Controller
     public function sendEmailAuthAproved($id)
     {
         try {
+            $bill = Bill::with('debitNote', 'payments.bankAccount', 'items.product.unit')->find($id);
+            $vendor      = $bill->vender;
+            
             $uArr = [
-                'bill_name' => "bill->name",
+                'bill_name' => "pagando",
                 'bill_number' => "bill->bill",
                 'bill_url' => "bill->url",
+                'fecha_venta' => Carbon::now()->locale('es')->isoFormat('D [de] MMMM YYYY'),
+                'nombreSRL' => $vendor->shipping_name,
             ];
             $resp = Utility::sendEmailTemplateWithDocumentAuthorizationTransfer('bill_sent', "wilbrenrosario@gmail.com", $uArr);
             return response()->json(['success' => true, 'msg' => $resp]);
