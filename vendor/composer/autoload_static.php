@@ -933,6 +933,7 @@ class ComposerStaticInit7e8c3c14ff33b199b4a0838993eb8423
         'App\\Exports\\VenderExport' => __DIR__ . '/../..' . '/app/Exports/VenderExport.php',
         'App\\Http\\Controllers\\AamarpayController' => __DIR__ . '/../..' . '/app/Http/Controllers/AamarpayController.php',
         'App\\Http\\Controllers\\AiTemplateController' => __DIR__ . '/../..' . '/app/Http/Controllers/AiTemplateController.php',
+        'App\\Http\\Controllers\\ApiExternalController' => __DIR__ . '/../..' . '/app/Http/Controllers/ApiExternalController.php',
         'App\\Http\\Controllers\\AssetController' => __DIR__ . '/../..' . '/app/Http/Controllers/AssetController.php',
         'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
         'App\\Http\\Controllers\\Auth\\ConfirmablePasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ConfirmablePasswordController.php',

@@ -54,33 +54,32 @@
     <table class="tabla-montos">
         <tr>
             <td><strong>Montos:</strong></td>
-            <td>RD$1,129,894.84</td>
+            <td>RD${{$obj['montoTotal']}}</td>
         </tr>
         <tr>
             <td><strong>Retención:</strong></td>
-            <td>RD$ -47,876.90</td>
+            <td>RD${{$obj['retencion']}}</td>
         </tr>
         <tr>
             <td><strong>Monto a pagar:</strong></td>
-            <td>RD$1,082,017.94</td>
+            <td>RD${{$obj['montoCompleto']}}</td>
         </tr>
     </table>
 
-    <p><strong>Por un monto de RD$1,082,017.94 (UN MILLÓN OCHENTA Y DOS MIL DIECISIETE PESOS CON 94/100)</strong></p>
+    <p><strong>Por un monto de RD${{$obj['montoCompleto']}} ({{$obj['montoTotalTexto']}})</strong></p>
 
-    <p><strong>CONCEPTO DE:</strong> PAGO DE FACT NCF NO. B150000006, POR ADQUISICIÓN DE CALENTADORES PARA PACIENTES Y MANTAS TÉRMICAS NEONATALES, SEGÚN ORDEN DE COMPRA HSLM-2024-01349.</p>
+    <p><strong>CONCEPTO DE:</strong> PAGO DE FACT NCF NO. {{$obj['numero_factura']}}, POR ADQUISICIÓN DE {{$obj['detalle']}}, SEGÚN ORDEN DE COMPRA {{$obj['numero_orden']}}.</p>
 
     <br>
     <table class="tabla-montos">
-        <tr>
-            <td>2.6.3.1.02</td>
-            <td>887,994.84</td>
-        </tr>
-        <tr>
-            <td>2.3.9.3.02</td>
-            <td>241,900.00</td>
-        </tr>
+        @foreach($obj['cuentas_afectadas'] as $key => $value)
+            <tr>
+                <td>{{ $value['chart_account_id'] }}</td>
+                <td>{{ \Auth::user()->priceFormat($value['price']) }}</td>
+            </tr>
+        @endforeach
     </table>
+
 
     <table class="firma">
         <tr>

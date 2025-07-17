@@ -788,12 +788,23 @@ class BillController extends Controller
             $bill = Bill::with('debitNote', 'payments.bankAccount', 'items.product.unit')->find($id);
             $vendor      = $bill->vender;
             
+            $total = $bill->getAccountTotal();
+            $base_imponible = $bill->getAccountTotal() / 1.18;
+            $iva = $total - $base_imponible;
+            $retencion = $iva * 0.278;
+
             $uArr = [
-                'bill_name' => "pagando",
-                'bill_number' => "bill->bill",
-                'bill_url' => "bill->url",
                 'fecha_venta' => Carbon::now()->locale('es')->isoFormat('D [de] MMMM YYYY'),
                 'nombreSRL' => $vendor->shipping_name,
+                'dirigidoA' => $vendor->billing_name,
+                'montoTotal' => \Auth::user()->priceFormat($total),
+                'retencion' => \Auth::user()->priceFormat($retencion),
+                'montoCompleto' => \Auth::user()->priceFormat($total - $retencion),
+                'montoTotalTexto' => $this->dineroATexto($total - $retencion),
+                'numero_factura' => \Auth::user()->billNumberFormat($bill->bill_id),
+                'detalle' => $bill->items[0]->product['name'],
+                'numero_orden' => $bill->order_number,
+                'cuentas_afectadas' => $bill->accounts,
             ];
             $resp = Utility::sendEmailTemplateWithDocumentAuthorizationTransfer('bill_sent', "wilbrenrosario@gmail.com", $uArr);
             return response()->json(['success' => true, 'msg' => $resp]);

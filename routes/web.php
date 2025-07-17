@@ -79,6 +79,7 @@ use App\Http\Controllers\ProductStockController;
 use App\Http\Controllers\TransferController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TaxController;
+use App\Http\Controllers\ApiExternalController;
 
 /*
 |--------------------------------------------------------------------------

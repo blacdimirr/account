@@ -67,6 +67,7 @@ return array(
     'App\\Exports\\VenderExport' => $baseDir . '/app/Exports/VenderExport.php',
     'App\\Http\\Controllers\\AamarpayController' => $baseDir . '/app/Http/Controllers/AamarpayController.php',
     'App\\Http\\Controllers\\AiTemplateController' => $baseDir . '/app/Http/Controllers/AiTemplateController.php',
+    'App\\Http\\Controllers\\ApiExternalController' => $baseDir . '/app/Http/Controllers/ApiExternalController.php',
     'App\\Http\\Controllers\\AssetController' => $baseDir . '/app/Http/Controllers/AssetController.php',
     'App\\Http\\Controllers\\Auth\\AuthenticatedSessionController' => $baseDir . '/app/Http/Controllers/Auth/AuthenticatedSessionController.php',
     'App\\Http\\Controllers\\Auth\\ConfirmablePasswordController' => $baseDir . '/app/Http/Controllers/Auth/ConfirmablePasswordController.php',
