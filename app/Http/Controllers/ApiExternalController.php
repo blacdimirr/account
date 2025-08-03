@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ProductCategory;
 use App\Models\ProductService;
+use App\Models\ProductServiceCategory;
+use App\Models\ProductServiceUnit;
 use Illuminate\Http\Request;
 
 class ApiExternalController extends Controller
@@ -10,11 +13,40 @@ class ApiExternalController extends Controller
 
     public function get_products()
     {
-        $productos = ProductService::all();
+       $productos = ProductService::with(['category', 'unit', 'taxes'])->get();
 
         return response()->json([
             'success' => true,
             'data' => $productos,
+        ]);
+    }
+
+    public function get_product_bySku($sku)
+    {
+        $producto = ProductService::with(['category', 'unit', 'taxes'])->where('sku', $sku)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $producto,
+        ]);
+    }
+
+     public function get_all_category()
+    {
+        $category = ProductServiceCategory::all();
+
+        return response()->json([
+            'success' => true,
+            'data' => $category,
+        ]);
+    }
+    public function get_all_units()
+    {
+        $units = ProductServiceUnit::all();
+
+        return response()->json([
+            'success' => true,
+            'data' => $units,
         ]);
     }
 
