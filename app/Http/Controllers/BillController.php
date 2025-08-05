@@ -774,7 +774,7 @@ class BillController extends Controller
                 'ncf' => '',
                 
             ];
-            $resp = Utility::sendEmailTemplateWithDocument('bill_sent', "wilbrenrosario@gmail.com", $uArr);
+            $resp = Utility::sendEmailTemplateWithDocument('bill_sent', env("MAIL_TO"), $uArr);
             return response()->json(['success' => true, 'msg' => $resp]);
         } catch (\Exception $e) {
             $smtp_error = __('E-Mail has been not sent due to SMTP configuration');
@@ -806,7 +806,7 @@ class BillController extends Controller
                 'numero_orden' => $bill->order_number,
                 'cuentas_afectadas' => $bill->accounts,
             ];
-            $resp = Utility::sendEmailTemplateWithDocumentAuthorizationTransfer('bill_sent', "wilbrenrosario@gmail.com", $uArr);
+            $resp = Utility::sendEmailTemplateWithDocumentAuthorizationTransfer('bill_sent', env("MAIL_TO"), $uArr);
             return response()->json(['success' => true, 'msg' => $resp]);
         } catch (\Exception $e) {
             $smtp_error = __('E-Mail has been not sent due to SMTP configuration');
