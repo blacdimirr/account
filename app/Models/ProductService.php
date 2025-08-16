@@ -70,6 +70,11 @@ class ProductService extends Model
         return $taxeRate;
     }
 
+    public function billItems()
+{
+    return $this->hasMany(BillProduct::class, 'product_id');
+}
+
     public static function productserviceunit($unit)
     {
         $categoryArr  = explode(',', $unit);
