@@ -125,6 +125,11 @@
     {{ Form::close() }}
 @endsection
 
+{{--  
+
+TODO: CHINGUESE.
+
+
 <script src="{{ asset('js/jquery.min.js') }}"></script>
 <script>
     $(document).ready(function() {
@@ -134,6 +139,8 @@
         });
     });
 </script>
+
+--}}
 
 @push('custom-scripts')
     {{-- @if ($settings['recaptcha_module'] == 'yes')
