@@ -651,7 +651,7 @@
                             <tbody class="ui-sortable" data-repeater-item>
                                 <tr>
                                     <td width="25%" class="form-group pt-0 flex-nowrap">
-                                        {{ Form::select('item', $product_services, '', ['class' => 'form-control item', 'data-url' => route('bill.product'), 'required' => 'required']) }}
+                                        {{ Form::select('item', $product_services, '', ['class' => 'form-control item select2', 'data-url' => route('bill.product'), 'required' => 'required']) }}
                                     </td>
                                     <td>
                                         <div class="form-group price-input input-group search-form flex-nowrap">
