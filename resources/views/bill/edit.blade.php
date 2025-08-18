@@ -800,7 +800,7 @@
                                     {{ Form::hidden('account_id',null, array('class' => 'form-control account_id')) }}
                                     <td width="25%">
                                         <div class="form-group flex-nowrap">
-                                            {{ Form::select('items', $product_services, null, ['class' => 'form-control select item', 'data-url' => route('bill.product')]) }}
+                                            {{ Form::select('items', $product_services, null, ['class' => 'form-control select item select2', 'data-url' => route('bill.product')]) }}
                                         </div>
                                     </td>
                                     <td>
