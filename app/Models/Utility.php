@@ -1797,10 +1797,8 @@ class Utility extends Model
                     $mimes =  !empty($settings['s3_storage_validation']) ? $settings['s3_storage_validation'] : '';
                 } else {
                     $max_size = !empty($settings['local_storage_max_upload_size']) ? $settings['local_storage_max_upload_size'] : '2048';
-
                     $mimes =  !empty($settings['local_storage_validation']) ? $settings['local_storage_validation'] : '';
                 }
-
 
                 $file = $request->$key_name;
                 $extension = strtolower($file->getClientOriginalExtension());
@@ -1815,12 +1813,12 @@ class Utility extends Model
                 if (count($custom_validation) > 0) {
                     $validation = $custom_validation;
                 } else {
-
                     $validation = [
                         'mimes:' . $mimes,
                         'max:' . $max_size,
                     ];
                 }
+
                 $validator = \Validator::make($request->all(), [
                     $key_name => $validation
                 ]);
@@ -1836,7 +1834,30 @@ class Utility extends Model
                     $name = $name;
 
                     if ($settings['storage_setting'] == 'local') {
-                        $request->$key_name->move(storage_path($path), $name);
+
+                        // Crear directorio en storage si no existe
+                        $storage_path = storage_path($path);
+                        if (!file_exists($storage_path)) {
+                            mkdir($storage_path, 0755, true);
+                        }
+
+                        // Crear directorio en public/storage si no existe
+                        $public_storage_path = public_path('storage/' . $path);
+                        if (!file_exists($public_storage_path)) {
+                            mkdir($public_storage_path, 0755, true);
+                        }
+
+                        // Guardar en storage (ubicación original)
+                        $request->$key_name->move($storage_path, $name);
+
+                        // Copiar también a public/storage para acceso público
+                        $source_file = $storage_path . '/' . $name;
+                        $destination_file = $public_storage_path . '/' . $name;
+
+                        if (file_exists($source_file)) {
+                            copy($source_file, $destination_file);
+                        }
+
                         $path = $path . $name;
                     } else if ($settings['storage_setting'] == 'wasabi') {
 
@@ -1845,9 +1866,6 @@ class Utility extends Model
                             $file,
                             $name
                         );
-
-                        // $path = $path.$name;
-
                     } else if ($settings['storage_setting'] == 's3') {
 
                         $path = \Storage::disk('s3')->putFileAs(
@@ -1855,9 +1873,7 @@ class Utility extends Model
                             $file,
                             $name
                         );
-                        // $path = $path.$name;
                     }
-
 
                     $res = [
                         'flag' => 1,
