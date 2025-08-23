@@ -20,3 +20,5 @@ Route::post('/update_product_bySku/{sku}/update', [ApiExternalController::class,
 
 Route::get('/compras', [PurchaseOrderController::class, 'byVendorAndOrder']);
 Route::get('/update-compras', [PurchaseOrderController::class, 'updateByVendorAndOrder']);
+
+Route::get('/get-suplidores', [PurchaseOrderController::class, 'getSuppliers']);

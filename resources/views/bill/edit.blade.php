@@ -736,7 +736,7 @@
                                     <div class="form-group">
                                         {{ Form::label('order_number', __('Order Number'), ['class' => 'form-label']) }}
                                         <div class="form-icon-user">
-                                            {{ Form::number('order_number', null, ['class' => 'form-control', 'placeholder'=>__('Enter Order Number')]) }}
+                                            {{ Form::text('order_number', null, ['class' => 'form-control', 'placeholder'=>__('Enter Order Number')]) }}
                                         </div>
                                     </div>
                                 </div>

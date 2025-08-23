@@ -8,6 +8,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use App\Models\Bill;
 use App\Models\BillProduct;
+use App\Models\Vender;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOrderController extends Controller
@@ -37,6 +38,7 @@ class PurchaseOrderController extends Controller
                 'quantity'           => (float)($item->quantity ?? 0),
                 'received_quantity'  => 0,   // siempre 0
                 'sku'               => $item->product->sku ?? 'SKU no disponible',
+                'name'              => $item->product->name ?? 'Nombre no disponible',
             ];
         })->values();
 
@@ -116,6 +118,22 @@ class PurchaseOrderController extends Controller
             'message'      => 'Cantidad recibida actualizada correctamente.',
             'order_number' => $bill->order_number,
             'updated'      => $updated,
+        ]);
+    }
+
+    public function getSuppliers(Request $request)
+    {
+        $vender = Vender::all();
+
+        if (!$vender) {
+            return response()->json([
+                'message' => 'No se encontró suplidores.',
+            ], 404);
+        }
+
+        return response()->json([
+            'supplier'     => $vender,
+            'message' => "Suplidores encontrados correctamente.",
         ]);
     }
 }
