@@ -89,7 +89,11 @@ class BillController extends Controller
             $venders     = Vender::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $venders->prepend('Select Vendor', '');
 
-            $product_services = ProductService::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
+            $product_services = ProductService::where('created_by', \Auth::user()->creatorId())
+            ->orderBy('name', 'asc')
+            ->get()
+            ->pluck('name', 'id')
+            ->prepend('Select Item', '');
             $product_services->prepend('Select Item', '');
 
             $chartAccounts = ChartOfAccount::select(\DB::raw('CONCAT(code, " - ", name) AS code_name, id'))
@@ -307,7 +311,10 @@ class BillController extends Controller
 
             $estatus = Status::getAllAsArray();
 
-            $product_services = ProductService::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
+            $product_services = ProductService::where('created_by', \Auth::user()->creatorId())
+            ->orderBy('name', 'asc')
+            ->get()
+            ->pluck('name', 'id');
 
             $bill->customField = CustomField::getData($bill, 'bill');
             $customFields      = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'bill')->get();

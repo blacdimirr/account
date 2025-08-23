@@ -102,7 +102,6 @@
         })
 
         $(document).on('change', '.item', function() {
-alert('Please select item from the dropdown');
             var iteams_id = $(this).val();
             var url = $(this).data('url');
             var el = $(this);
