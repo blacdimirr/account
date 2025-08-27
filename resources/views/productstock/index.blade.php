@@ -20,7 +20,9 @@
                             <tr role="row">
                                 <th>{{ __('Name') }}</th>
                                 <th>{{ __('Sku') }}</th>
-                                <th>{{ __('Current Quantity') }}</th>
+                                <th>Cantidad Actual</th>
+                                <th>Cantidad Recibida</th>
+                                <th>Cantidad Total</th>
                                  <th>{{ __('Action') }}</th>
                             </tr>
                             </thead>
@@ -31,6 +33,8 @@
                                     <td>{{ $productService->name }}</td>
                                     <td>{{ $productService->sku }}</td>
                                     <td>{{ $productService->quantity }}</td>
+                                    <td>{{ $productService->quantity_received }}</td>
+                                    <td>{{ $productService->quantity - $productService->quantity_received }}</td>
                                     <td class="Action">
                                         <div class="action-btn">
                                             <a data-size="md" href="#" class="mx-3 btn btn-sm d-inline-flex align-items-center bg-info " data-url="{{ route('productstock.edit', $productService->id) }}" data-ajax-popup="true"  data-size="xl" data-bs-toggle="tooltip" title="{{__('Update Quantity')}}">

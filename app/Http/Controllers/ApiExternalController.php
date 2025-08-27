@@ -64,7 +64,7 @@ class ApiExternalController extends Controller
         }
 
 
-        $producto->quantity = $request->input('quantity');
+        $producto->quantity_received = $producto->quantity_received + $request->input('quantity');
         $producto->save();
 
         return response()->json([

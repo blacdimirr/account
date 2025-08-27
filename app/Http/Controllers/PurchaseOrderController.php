@@ -20,10 +20,11 @@ class PurchaseOrderController extends Controller
             'order_number' => ['required', 'string'],       // Número de orden/compra (campo en bills)
         ]);
 
-        $bill = Bill::with(['items.product:id,name,description,sku'])
+        $bill = Bill::with(['items.product.unit:id,name', 'items.product:id,name,description,sku,unit_id'])
             ->where('vender_id', $data['vendor_id'])
-            ->where('order_number', $data['order_number']) // ajusta si tu campo se llama distinto
+            ->where('order_number', $data['order_number'])
             ->first();
+
 
         if (!$bill) {
             return response()->json([
@@ -39,6 +40,7 @@ class PurchaseOrderController extends Controller
                 'received_quantity'  => 0,   // siempre 0
                 'sku'               => $item->product->sku ?? 'SKU no disponible',
                 'name'              => $item->product->name ?? 'Nombre no disponible',
+                'unit'             => $item->product->unit?->name ?? 'Unidad no disponible',
             ];
         })->values();
 
