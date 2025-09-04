@@ -149,7 +149,7 @@ class BillController extends Controller
             $bill->bill_date      = $request->bill_date;
             $bill->status         = 0;
             $bill->due_date       = $request->due_date;
-        
+
             $bill->order_number   = !empty($request->order_number) ? $request->order_number : 0;
             $bill->discount_apply = isset($request->discount_apply) ? 1 : 0;
             $bill->created_by     = \Auth::user()->creatorId();
@@ -164,6 +164,9 @@ class BillController extends Controller
             $total_amount = 0;
 
             for ($i = 0; $i < count($products); $i++) {
+
+                $itemCategoryId = $products[$i]['category_id'] ?? null;
+
                 // Guarda la línea de productos
                 $billProduct              = new BillProduct();
                 $billProduct->bill_id     = $bill->id;
@@ -173,6 +176,7 @@ class BillController extends Controller
                 $billProduct->discount    = $products[$i]['discount'] ?? 0;
                 $billProduct->price       = $products[$i]['price'];
                 $billProduct->description = $products[$i]['description'] ?? null;
+                $billProduct->category_id = $itemCategoryId ?? null;
                 $billProduct->save();
 
                 // >>> Cálculo del total de la línea
@@ -185,7 +189,7 @@ class BillController extends Controller
 
                 // >>> Determinar la categoría del ítem (prioriza la que viene en el request)
                 // si no viene, toma la del ProductService
-                $itemCategoryId = $products[$i]['category_id'] ?? null;
+
                 if (!$itemCategoryId) {
                     $ps = \App\Models\ProductService::select('id', 'category_id')->find($billProduct->product_id);
                     if ($ps && $ps->category_id) {
@@ -382,20 +386,33 @@ class BillController extends Controller
             $accounts  = $bill->accounts;
             $items     = [];
             if (!empty($item) && count($item) > 0) {
-                foreach ($item as $k => $val) {
-                    if (!empty($accounts[$k])) {
-                        $val['chart_account_id'] = $accounts[$k]['chart_account_id'];
-                        $val['account_id'] = $accounts[$k]['id'];
-                        $val['amount'] = $accounts[$k]['price'];
+                foreach ($item as $k => $line) {
+                    // Convierte a array para manipular fácilmente
+                    $row = $line->toArray();
+
+                    // category_id de la línea; si no tiene, usa la del producto
+                    if (empty($row['category_id'])) {
+                        $row['category_id'] = ProductService::where('id', $line->product_id)->value('category_id');
                     }
-                    $items[] = $val;
+
+                    // Mantén tu lógica de cuentas por índice (si aplica)
+                    if (!empty($accounts[$k])) {
+                        $row['chart_account_id'] = $accounts[$k]['chart_account_id'];
+                        $row['account_id']       = $accounts[$k]['id'];
+                        $row['amount']           = $accounts[$k]['price'];
+                    }
+
+                    $items[] = $row;
                 }
             } else {
-                foreach ($accounts as $k => $val) {
-                    $val1['chart_account_id'] = $accounts[$k]['chart_account_id'];
-                    $val1['account_id'] = $accounts[$k]['id'];
-                    $val1['amount'] = $accounts[$k]['price'];
-                    $items[] = $val1;
+                foreach ($accounts as $k => $acc) {
+                    $row = [
+                        'chart_account_id' => $acc['chart_account_id'],
+                        'account_id'       => $acc['id'],
+                        'amount'           => $acc['price'],
+                        // cuando no hay líneas, no hay product_id/category_id a inferir
+                    ];
+                    $items[] = $row;
                 }
             }
 
@@ -407,200 +424,148 @@ class BillController extends Controller
 
     public function update(Request $request, Bill $bill)
     {
-        if (\Auth::user()->can('edit bill')) {
-
-            if ($bill->created_by == \Auth::user()->creatorId()) {
-                $validator = \Validator::make(
-                    $request->all(),
-                    [
-                        'vender_id' => 'required',
-                        'bill_date' => 'required',
-                        'due_date' => 'required',
-                        'items' => 'required',
-                    ]
-                );
-                if ($validator->fails()) {
-                    $messages = $validator->getMessageBag();
-
-                    return redirect()->route('bill.index')->with('error', $messages->first());
-                }
-                $bill->vender_id      = $request->vender_id;
-                $bill->bill_date      = $request->bill_date;
-                $bill->due_date       = $request->due_date;
-                $bill->order_number   = $request->order_number;
-                //                $bill->discount_apply = isset($request->discount_apply) ? 1 : 0;
-                $bill->category_id    = $request->category_id;
-                $bill->status         = $request->estatus_id;
-                $bill->save();
-                CustomField::saveData($bill, $request->customField);
-                $products = $request->items;
-                $total_amount = 0;
-
-                for ($i = 0; $i < count($products); $i++) {
-                    $billProduct = BillProduct::find($products[$i]['id']);
-
-                    if ($billProduct == null) {
-                        $billProduct             = new BillProduct();
-                        $billProduct->bill_id    = $bill->id;
-
-                        Utility::total_quantity('plus', $products[$i]['quantity'], $products[$i]['items']);
-
-                        $updatePrice = ($products[$i]['price'] * $products[$i]['quantity']) + ($products[$i]['itemTaxPrice']) - ($products[$i]['discount']);
-
-                        Utility::updateUserBalance('vendor', $request->vender_id, $updatePrice, 'debit');
-                    } else {
-
-                        Utility::total_quantity('minus', $billProduct->quantity, $billProduct->product_id);
-                    }
-
-                    if (isset($products[$i]['item'])) {
-                        $billProduct->product_id = $products[$i]['item'];
-                    }
-
-
-                    $billProduct->quantity    = $products[$i]['quantity'];
-                    $billProduct->tax         = $products[$i]['tax'];
-                    $billProduct->discount    = isset($products[$i]['discount']) ? $products[$i]['discount'] : 0;
-                    $billProduct->price       = $products[$i]['price'];
-                    $billProduct->description = $products[$i]['description'];
-                    $billProduct->save();
-
-
-                    $billTotal = 0;
-                    if (!empty($products[$i]['chart_account_id'])) {
-                        $billAccount = BillAccount::find($products[$i]['account_id']);
-
-                        if ($billAccount == null) {
-                            $billAccount                    = new BillAccount();
-                            $billAccount->chart_account_id = $products[$i]['chart_account_id'];
-                        } else {
-                            $billAccount->chart_account_id = $products[$i]['chart_account_id'];
-                        }
-                        $billAccount->price             = $products[$i]['amount'] ? $products[$i]['amount'] : 0;
-                        $billAccount->description       = $products[$i]['description'];
-                        $billAccount->type              = 'Bill';
-                        $billAccount->ref_id            = $bill->id;
-                        $billAccount->save();
-                        $billTotal = $billAccount->price;
-                    }
-
-                    if ($products[$i]['id'] > 0) {
-                        Utility::total_quantity('plus', $products[$i]['quantity'], $billProduct->product_id);
-                    }
-
-                    //Product Stock Report
-                    $type = 'bill';
-                    $type_id = $bill->id;
-                    StockReport::where('type', '=', 'bill')->where('type_id', '=', $bill->id)->delete();
-                    $description = $products[$i]['quantity'] . '  ' . __(' quantity purchase in bill') . ' ' . \Auth::user()->billNumberFormat($bill->bill_id);
-
-                    if (isset($products[$i]['item'])) {
-                        Utility::addProductStock($products[$i]['item'], $products[$i]['quantity'], $type, $description, $type_id);
-                    }
-
-                    $total_amount += ($billProduct->quantity * $billProduct->price) + $billTotal;
-                }
-
-                if (!empty($request->chart_account_id)) {
-                    $billaccount = ProductServiceCategory::find($request->category_id);
-                    $chart_account = ChartOfAccount::find($billaccount->chart_account_id);
-                    $billAccount                    = new BillAccount();
-                    $billAccount->chart_account_id  = $chart_account['id'];
-                    $billAccount->price             = $total_amount;
-                    $billAccount->description       = $request->description;
-                    $billAccount->type              = 'Bill Category';
-                    $billAccount->ref_id            = $bill->id;
-                    $billAccount->save();
-                }
-
-                TransactionLines::where('reference_id', $bill->id)->where('reference', 'Bill')->delete();
-                TransactionLines::where('reference_id', $bill->id)->where('reference', 'Bill Account')->delete();
-
-                $bill_products = BillProduct::where('bill_id', $bill->id)->get();
-                foreach ($bill_products as $bill_product) {
-                    $product = ProductService::find($bill_product->product_id);
-                    if ($product && !is_null($product->expense_chartaccount_id)) {
-                        $totalTaxPrice = 0;
-                        if ($bill_product->tax != null) {
-                            $taxes = \App\Models\Utility::tax($bill_product->tax);
-                            foreach ($taxes as $tax) {
-                                $taxPrice = \App\Models\Utility::taxRate($tax->rate, $bill_product->price, $bill_product->quantity, $bill_product->discount);
-                                $totalTaxPrice += $taxPrice;
-                            }
-                        }
-                        $itemAmount = ($bill_product->price * $bill_product->quantity) - ($bill_product->discount) + $totalTaxPrice;
-
-                        $data = [
-                            'account_id' => $product->expense_chartaccount_id,
-                            'transaction_type' => 'Debit',
-                            'transaction_amount' => $itemAmount,
-                            'reference' => 'Bill',
-                            'reference_id' => $bill->id,
-                            'reference_sub_id' => $product->id,
-                            'date' => $bill->bill_date,
-                        ];
-                        Utility::addTransactionLines($data);
-                    }
-                }
-
-                foreach ($bill_products as $bill_product) {
-                    $product = ProductService::find($bill_product->product_id);
-
-                    // Check if $product is not null and expense_chartaccount_id is not null before accessing its properties
-                    if ($product && !is_null($product->expense_chartaccount_id)) {
-                        $totalTaxPrice = 0;
-
-                        if ($bill_product->tax != null) {
-                            $taxes = \App\Models\Utility::tax($bill_product->tax);
-
-                            foreach ($taxes as $tax) {
-                                $taxPrice = \App\Models\Utility::taxRate($tax->rate, $bill_product->price, $bill_product->quantity, $bill_product->discount);
-                                $totalTaxPrice += $taxPrice;
-                            }
-                        }
-
-                        $itemAmount = ($bill_product->price * $bill_product->quantity) - ($bill_product->discount) + $totalTaxPrice;
-
-                        $data = [
-                            'account_id' => $product->expense_chartaccount_id,
-                            'transaction_type' => 'Debit',
-                            'transaction_amount' => $itemAmount,
-                            'reference' => 'Bill',
-                            'reference_id' => $bill->id,
-                            'reference_sub_id' => $product->id,
-                            'date' => $bill->bill_date,
-                        ];
-
-                        Utility::addTransactionLines($data);
-                    } else {
-                        // Handle the case where the product is not found or does not have expense_chartaccount_id (optional)
-                        // You may want to log an error, throw an exception, or handle it in some way.
-                    }
-                }
-
-
-                $bill_accounts = BillAccount::where('ref_id', $bill->id)->get();
-                foreach ($bill_accounts as $bill_product) {
-                    $data = [
-                        'account_id' => $bill_product->chart_account_id,
-                        'transaction_type' => 'Debit',
-                        'transaction_amount' => $bill_product->price,
-                        'reference' => 'Bill Account',
-                        'reference_id' => $bill_product->ref_id,
-                        'reference_sub_id' => $bill_product->id,
-                        'date' => $bill->bill_date,
-                    ];
-                    Utility::addTransactionLines($data);
-                }
-
-                return redirect()->route('bill.index')->with('success', __('Bill successfully updated.'));
-            } else {
-                return redirect()->back()->with('error', __('Permission denied.'));
-            }
-        } else {
+        if (!\Auth::user()->can('edit bill')) {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
+
+        if ($bill->created_by != \Auth::user()->creatorId()) {
+            return redirect()->back()->with('error', __('Permission denied.'));
+        }
+
+        $validator = \Validator::make(
+            $request->all(),
+            [
+                'vender_id' => 'required|integer',
+                'bill_date' => 'required|date',
+                'due_date'  => 'required|date',
+                'items'     => 'required|array|min:1',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return redirect()->route('bill.index')->with('error', $validator->getMessageBag()->first());
+        }
+
+        // 1) Actualiza solo datos "cabezales" (NO status)
+        $bill->vender_id    = $request->vender_id;
+        $bill->bill_date    = $request->bill_date;
+        $bill->due_date     = $request->due_date;
+        $bill->order_number = $request->order_number;
+        // $bill->status    = $request->estatus_id; // ← INTENCIONALMENTE NO SE TOCA
+        $bill->save();
+
+        // Campos personalizados
+        CustomField::saveData($bill, $request->customField);
+
+        $products = $request->items;
+        $inventoryChanged = false;     // si hay cambios reales (no solo categoría)
+        $onlyCategoryChanges = true;   // asumimos que solo cambian categorías hasta probar lo contrario
+
+        foreach ($products as $row) {
+            $lineId = isset($row['id']) ? (int)$row['id'] : 0;
+            $existing = $lineId > 0 ? BillProduct::find($lineId) : null;
+
+            // Valores nuevos propuestos
+            $newProductId = isset($row['item']) ? (int)$row['item'] : ($existing?->product_id);
+            $newQty       = isset($row['quantity']) ? (float)$row['quantity'] : ($existing?->quantity ?? 0);
+            $newPrice     = isset($row['price']) ? (float)$row['price'] : ($existing?->price ?? 0);
+            $newTax       = $row['tax'] ?? ($existing?->tax);
+            $newDiscount  = isset($row['discount']) ? (float)$row['discount'] : ($existing?->discount ?? 0);
+            $newDesc      = $row['description'] ?? ($existing?->description);
+            $newCatId     = $row['category_id'] ?? ($existing?->category_id);
+
+            if (is_null($existing)) {
+                // 2) Línea nueva → sí mueve inventario (comportamiento normal)
+                $bp                 = new BillProduct();
+                $bp->bill_id        = $bill->id;
+                $bp->product_id     = $newProductId;
+                $bp->quantity       = $newQty;
+                $bp->tax            = $newTax;
+                $bp->discount       = $newDiscount;
+                $bp->price          = $newPrice;
+                $bp->description    = $newDesc;
+                $bp->category_id    = $newCatId ?? null;
+                $bp->save();
+
+                // Ajuste inventario
+                if (!empty($newProductId) && $newQty > 0) {
+                    Utility::total_quantity('plus', $newQty, $newProductId);
+                    $inventoryChanged = true;
+                    $onlyCategoryChanges = false;
+                }
+
+                // (NO movimientos contables en EDIT)
+                continue;
+            }
+
+            // 3) Línea existente: detecta si el ÚNICO cambio es la categoría
+            $isOnlyCategoryChange =
+                ($existing->product_id === $newProductId) &&
+                ((float)$existing->quantity === (float)$newQty) &&
+                ((float)$existing->price === (float)$newPrice) &&
+                ((string)$existing->tax === (string)$newTax) &&
+                ((float)$existing->discount === (float)$newDiscount) &&
+                ((string)$existing->description === (string)$newDesc) &&
+                ((int)$existing->category_id !== (int)$newCatId);
+
+            if ($isOnlyCategoryChange) {
+                // → No muevas inventario ni contabilidad: solo actualiza la categoría (y descripción si vino)
+                $existing->category_id = $newCatId ?? null;
+                $existing->description = $newDesc;
+                $existing->save();
+                // Mantén flags: solo-categoría
+                continue;
+            }
+
+            // 4) Cambio REAL (producto, qty, price, tax, discount o descripción)
+            $onlyCategoryChanges = false;
+
+            // Revertir inventario previo de la línea
+            if (!empty($existing->product_id) && $existing->quantity > 0) {
+                Utility::total_quantity('minus', (float)$existing->quantity, (int)$existing->product_id);
+            }
+
+            // Actualizar la línea
+            $existing->product_id  = $newProductId;
+            $existing->quantity    = $newQty;
+            $existing->tax         = $newTax;
+            $existing->discount    = $newDiscount;
+            $existing->price       = $newPrice;
+            $existing->description = $newDesc;
+            $existing->category_id = $newCatId ?? null;
+            $existing->save();
+
+            // Aplicar inventario nuevo
+            if (!empty($newProductId) && $newQty > 0) {
+                Utility::total_quantity('plus', $newQty, $newProductId);
+                $inventoryChanged = true;
+            }
+
+            // (NO movimientos contables en EDIT)
+        }
+
+        // 5) Si hubo cambios reales, reconstruye el StockReport de la factura UNA sola vez
+        if ($inventoryChanged) {
+            StockReport::where('type', 'bill')->where('type_id', $bill->id)->delete();
+
+            $currLines = BillProduct::where('bill_id', $bill->id)->get();
+            foreach ($currLines as $bp) {
+                if (!empty($bp->product_id) && $bp->quantity > 0) {
+                    $desc = $bp->quantity . ' ' . __('quantity purchase in bill') . ' ' . \Auth::user()->billNumberFormat($bill->bill_id);
+                    Utility::addProductStock($bp->product_id, $bp->quantity, 'bill', $desc, $bill->id);
+                }
+            }
+        }
+        // Si fueron SOLO cambios de categoría, no tocamos StockReport ni inventario.
+
+        // 6) NO crear/actualizar BillAccount ni TransactionLines en EDIT
+        //    (eliminar cualquier lógica previa relacionada)
+        // TransactionLines::where(...)->delete(); // ← ya NO
+        // (NO Utility::addTransactionLines)
+
+        return redirect()->route('bill.index')->with('success', __('Bill successfully updated.'));
     }
+
 
 
     public function destroy(Bill $bill)
@@ -687,82 +652,118 @@ class BillController extends Controller
         }
     }
 
-    public function sent($id)
-    {
-        if (\Auth::user()->can('send bill')) {
-            $bill            = Bill::where('id', $id)->first();
-            $bill->send_date = date('Y-m-d');
+   public function sent($id)
+{
+    if (!\Auth::user()->can('send bill')) {
+        return redirect()->back()->with('error', __('Permission denied.'));
+    }
+
+    $bill = Bill::findOrFail($id);
+
+    try {
+        \DB::transaction(function () use ($bill) {
+
+            $bill->send_date = now()->toDateString();
             $bill->status    = 1;
             $bill->save();
 
-            $vender = Vender::where('id', $bill->vender_id)->first();
+            $vender = Vender::find($bill->vender_id);
 
-            $bill->name = !empty($vender) ? $vender->name : '';
+            $bill->name = $vender?->name ?? '';
             $bill->bill = \Auth::user()->billNumberFormat($bill->bill_id);
+            $bill->url  = route('bill.pdf', Crypt::encrypt($bill->id));
 
-            $billId    = Crypt::encrypt($bill->id);
-            $bill->url = route('bill.pdf', $billId);
+            // Ajusta saldo del proveedor
+            Utility::updateUserBalance('vendor', $bill->vender_id, $bill->getTotal(), 'debit');
 
-            // Utility::userBalance('vendor', $vender->id, $bill->getTotal(), 'credit');
+            // Evita duplicados si reenvías
+            TransactionLines::where('reference_id', $bill->id)
+                ->whereIn('reference', ['Bill', 'Bill Account'])
+                ->delete();
 
-            Utility::updateUserBalance('vendor', $vender->id, $bill->getTotal(), 'debit');
-
-            $uArr = [
-                'bill_name' => $bill->name,
-                'bill_number' => $bill->bill,
-                'bill_url' => $bill->url,
-            ];
-
+            // ==== Transacciones por LÍNEA usando la CATEGORÍA ACTUAL ====
             $bill_products = BillProduct::where('bill_id', $bill->id)->get();
-            foreach ($bill_products as $bill_product) {
-                $product = ProductService::find($bill_product->product_id);
+
+            foreach ($bill_products as $bp) {
+                // Calcula impuestos de la línea
                 $totalTaxPrice = 0;
-                if ($bill_product->tax != null) {
-                    $taxes = \App\Models\Utility::tax($bill_product->tax);
+                if (!empty($bp->tax)) {
+                    $taxes = \App\Models\Utility::tax($bp->tax);
                     foreach ($taxes as $tax) {
-                        $taxPrice = \App\Models\Utility::taxRate($tax->rate, $bill_product->price, $bill_product->quantity, $bill_product->discount);
-                        $totalTaxPrice += $taxPrice;
+                        $totalTaxPrice += \App\Models\Utility::taxRate(
+                            $tax->rate,
+                            $bp->price,
+                            $bp->quantity,
+                            $bp->discount
+                        );
                     }
                 }
 
-                $itemAmount = ($bill_product->price * $bill_product->quantity) - ($bill_product->discount) + $totalTaxPrice;
+                $itemAmount = ($bp->price * $bp->quantity) - ($bp->discount ?? 0) + $totalTaxPrice;
 
-                $data = [
-                    'account_id' => $product->expense_chartaccount_id,
-                    'transaction_type' => 'Debit',
-                    'transaction_amount' => $itemAmount,
-                    'reference' => 'Bill',
-                    'reference_id' => $bill->id,
-                    'reference_sub_id' => $product->id,
-                    'date' => $bill->bill_date,
+                // RESOLVER CUENTA: 1) categoría de la línea  2) fallback a cuenta del producto
+                $accountId = null;
+
+                if (!empty($bp->category_id)) {
+                    $cat = ProductServiceCategory::select('chart_account_id')->find($bp->category_id);
+                    $accountId = $cat?->chart_account_id;
+                }
+
+                if (empty($accountId)) {
+                    $product = ProductService::select('expense_chartaccount_id')->find($bp->product_id);
+                    $accountId = $product?->expense_chartaccount_id;
+                }
+
+                if (!empty($accountId)) {
+                    Utility::addTransactionLines([
+                        'account_id'         => $accountId,
+                        'transaction_type'   => 'Debit',
+                        'transaction_amount' => $itemAmount,
+                        'reference'          => 'Bill',
+                        'reference_id'       => $bill->id,
+                        'reference_sub_id'   => $bp->product_id,
+                        'date'               => $bill->bill_date,
+                    ]);
+                }
+            }
+
+            // ==== OPCIONAL: Solo asientos MANUALES desde BillAccount (evita duplicar lo de categoría) ====
+            /*
+            $manualAccounts = BillAccount::where('ref_id', $bill->id)
+                ->where('type', 'Bill Item Manual')
+                ->get();
+
+            foreach ($manualAccounts as $ba) {
+                Utility::addTransactionLines([
+                    'account_id'         => $ba->chart_account_id,
+                    'transaction_type'   => 'Debit',
+                    'transaction_amount' => $ba->price,
+                    'reference'          => 'Bill Account',
+                    'reference_id'       => $ba->ref_id,
+                    'reference_sub_id'   => $ba->id,
+                    'date'               => $bill->bill_date,
+                ]);
+            }
+            */
+
+            // Envío de correo (si hay email)
+            if ($vender && !empty($vender->email)) {
+                $uArr = [
+                    'bill_name'   => $bill->name,
+                    'bill_number' => $bill->bill,
+                    'bill_url'    => $bill->url,
                 ];
-                Utility::addTransactionLines($data);
+                Utility::sendEmailTemplate('bill_sent', [$vender->id => $vender->email], $uArr);
             }
+        });
 
-            $bill_accounts = BillAccount::where('ref_id', $bill->id)->get();
-            foreach ($bill_accounts as $bill_product) {
-                $data = [
-                    'account_id' => $bill_product->chart_account_id,
-                    'transaction_type' => 'Debit',
-                    'transaction_amount' => $bill_product->price,
-                    'reference' => 'Bill Account',
-                    'reference_id' => $bill_product->ref_id,
-                    'reference_sub_id' => $bill_product->id,
-                    'date' => $bill->bill_date,
-                ];
-                Utility::addTransactionLines($data);
-            }
-            try {
-                $resp = Utility::sendEmailTemplate('bill_sent', [$vender->id => $vender->email], $uArr);
-            } catch (\Exception $e) {
-                $smtp_error = __('E-Mail has been not sent due to SMTP configuration');
-            }
-
-            return redirect()->back()->with('success', __('Bill successfully sent.') . ((isset($smtp_error)) ? '<br> <span class="text-danger">' . $smtp_error . '</span>' : ''));
-        } else {
-            return redirect()->back()->with('error', __('Permission denied.'));
-        }
+        return redirect()->back()->with('success', __('Bill successfully sent.'));
+    } catch (\Exception $e) {
+        $smtp_error = __('E-Mail has been not sent due to SMTP configuration');
+        return redirect()->back()->with('error', $smtp_error . ' | ' . $e->getMessage());
     }
+}
+
 
     public function resent($id)
     {

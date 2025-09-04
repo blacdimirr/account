@@ -873,7 +873,7 @@
                                 <td width="25%" class="form-group pt-0 flex-nowrap">
                                      <div class="form-group">
                                         {{ Form::label('category_id', __('Category'), ['class' => 'form-label']) }}<x-required></x-required>
-                                        {{ Form::select('category_id', $category, 'null', ['class' => 'form-control select', 'required' => 'required']) }}
+                                        {{ Form::select('category_id', $category, $bill->category_id, ['class' => 'form-control select', 'required' => 'required']) }}
                                     </td>
                                 </tr>
                             </tbody>
