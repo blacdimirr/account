@@ -32,6 +32,7 @@ use App\Models\Status;
 use App\Models\TransactionLines;
 use Exception;
 use Carbon\Carbon;
+use CoinGate\Exception\Api\BadRequest;
 use NumberToWords\NumberToWords;
 
 class BillController extends Controller
@@ -90,10 +91,10 @@ class BillController extends Controller
             $venders->prepend('Select Vendor', '');
 
             $product_services = ProductService::where('created_by', \Auth::user()->creatorId())
-            ->orderBy('name', 'asc')
-            ->get()
-            ->pluck('name', 'id')
-            ->prepend('Select Item', '');
+                ->orderBy('name', 'asc')
+                ->get()
+                ->pluck('name', 'id')
+                ->prepend('Select Item', '');
             $product_services->prepend('Select Item', '');
 
             $chartAccounts = ChartOfAccount::select(\DB::raw('CONCAT(code, " - ", name) AS code_name, id'))
@@ -116,30 +117,39 @@ class BillController extends Controller
 
     public function store(Request $request)
     {
+        // return response()->json(['error' => __('Permission denied.')], 401);
+
         if (\Auth::user()->can('create bill')) {
             $validator = \Validator::make(
                 $request->all(),
                 [
                     'vender_id' => 'required',
                     'bill_date' => 'required',
-                    'due_date' => 'required',
-                    'category_id' => 'required',
-                    'items' => 'required',
-
+                    'due_date'  => 'required',
+                    'items'     => 'required|array|min:1',
+                    'items.*.item'         => 'required|integer',
+                    'items.*.quantity'     => 'required|numeric|min:0.0001',
+                    'items.*.price'        => 'required|numeric|min:0',
+                    'items.*.discount'     => 'nullable|numeric|min:0',
+                    'items.*.itemTaxPrice' => 'nullable|numeric|min:0',
+                    // si te la envían por cada ítem:
+                    'items.*.category_id'  => 'nullable|integer',
                 ]
             );
+
             if ($validator->fails()) {
                 $messages = $validator->getMessageBag();
 
                 return redirect()->back()->with('error', $messages->first());
             }
+
             $bill            = new Bill();
             $bill->bill_id   = $this->billNumber();
             $bill->vender_id = $request->vender_id;
             $bill->bill_date      = $request->bill_date;
             $bill->status         = 0;
             $bill->due_date       = $request->due_date;
-            $bill->category_id    = $request->category_id;
+        
             $bill->order_number   = !empty($request->order_number) ? $request->order_number : 0;
             $bill->discount_apply = isset($request->discount_apply) ? 1 : 0;
             $bill->created_by     = \Auth::user()->creatorId();
@@ -151,41 +161,78 @@ class BillController extends Controller
 
             $total_amount = 0;
 
+            $total_amount = 0;
+
             for ($i = 0; $i < count($products); $i++) {
+                // Guarda la línea de productos
                 $billProduct              = new BillProduct();
                 $billProduct->bill_id     = $bill->id;
                 $billProduct->product_id  = $products[$i]['item'];
                 $billProduct->quantity    = $products[$i]['quantity'];
                 $billProduct->tax         = $products[$i]['tax'];
-                // $billProduct->discount = isset($products[$i]['discount']) ? $products[$i]['discount'] : 0;
-                // $billProduct->discount = (isset($request->discount_apply)) ? isset($products[$i]['discount']) ? $products[$i]['discount'] : 0: 0;
-                $billProduct->discount    = $products[$i]['discount'];
+                $billProduct->discount    = $products[$i]['discount'] ?? 0;
                 $billProduct->price       = $products[$i]['price'];
-                $billProduct->description = $products[$i]['description'];
+                $billProduct->description = $products[$i]['description'] ?? null;
                 $billProduct->save();
 
-                $billTotal = 0;
+                // >>> Cálculo del total de la línea
+                $qty         = (float) $billProduct->quantity;
+                $price       = (float) $billProduct->price;
+                $discount    = (float) ($billProduct->discount ?? 0);
+                $taxAmount   = (float) ($products[$i]['itemTaxPrice'] ?? 0); // ya viene calculado
+                $lineBase    = max(0, ($qty * $price) - $discount);
+                $lineTotal   = $lineBase + $taxAmount;
+
+                // >>> Determinar la categoría del ítem (prioriza la que viene en el request)
+                // si no viene, toma la del ProductService
+                $itemCategoryId = $products[$i]['category_id'] ?? null;
+                if (!$itemCategoryId) {
+                    $ps = \App\Models\ProductService::select('id', 'category_id')->find($billProduct->product_id);
+                    if ($ps && $ps->category_id) {
+                        $itemCategoryId = $ps->category_id;
+                    }
+                }
+
+                // >>> Crear BillAccount por categoría del ítem
+                if (!empty($itemCategoryId)) {
+                    $itemCategory = \App\Models\ProductServiceCategory::find($itemCategoryId);
+                    if ($itemCategory && !empty($itemCategory->chart_account_id)) {
+                        $ba                    = new \App\Models\BillAccount();
+                        $ba->chart_account_id  = $itemCategory->chart_account_id;
+                        $ba->price             = $lineTotal; // monto de la línea (base - desc + impuesto)
+                        $ba->description       = $billProduct->description
+                            ?: ('Línea de factura - ProdID: ' . $billProduct->product_id);
+                        $ba->type              = 'Bill Item Category'; // etiqueta clara para auditoría
+                        $ba->ref_id            = $bill->id;
+                        $ba->save();
+                    }
+                }
+
+                // >>> (Opcional) Si sigues permitiendo chart_account_id por línea, se mantiene:
                 if (!empty($products[$i]['chart_account_id'])) {
-                    $billAccount                    = new BillAccount();
-                    $billAccount->chart_account_id  = $products[$i]['chart_account_id'];
-                    $billAccount->price             = $products[$i]['amount'] ? $products[$i]['amount'] : 0;
-                    $billAccount->description       = $products[$i]['description'];
-                    $billAccount->type              = 'Bill';
-                    $billAccount->ref_id            = $bill->id;
-                    $billAccount->save();
-                    $billTotal = $billAccount->price;
+                    $ba2                    = new \App\Models\BillAccount();
+                    $ba2->chart_account_id  = $products[$i]['chart_account_id'];
+                    // Si te pasan un "amount" manual, úsalo; si no, usa el lineTotal
+                    $ba2->price             = isset($products[$i]['amount']) && is_numeric($products[$i]['amount'])
+                        ? (float) $products[$i]['amount']
+                        : $lineTotal;
+                    $ba2->description       = $billProduct->description
+                        ?: ('Asiento manual por línea - ProdID: ' . $billProduct->product_id);
+                    $ba2->type              = 'Bill Item Manual';
+                    $ba2->ref_id            = $bill->id;
+                    $ba2->save();
                 }
 
-                Utility::total_quantity('plus', $billProduct->quantity, $billProduct->product_id);
-
-                //Product Stock Report
+                // Stock y reporte
                 if (!empty($products[$i]['item'])) {
-                    $type = 'bill';
-                    $type_id = $bill->id;
-                    $description = $products[$i]['quantity'] . '  ' . __('quantity purchase in bill') . ' ' . \Auth::user()->billNumberFormat($bill->bill_id);
-                    Utility::addProductStock($products[$i]['item'], $products[$i]['quantity'], $type, $description, $type_id);
-                    $total_amount += ($billProduct->quantity * $billProduct->price) + $billTotal;
+                    $type        = 'bill';
+                    $type_id     = $bill->id;
+                    $description = $billProduct->quantity . ' ' . __('quantity purchase in bill') . ' ' . \Auth::user()->billNumberFormat($bill->bill_id);
+                    Utility::addProductStock($products[$i]['item'], $billProduct->quantity, $type, $description, $type_id);
                 }
+
+                // Acumula total de la factura (usa siempre el total calculado de la línea)
+                $total_amount += $lineTotal;
             }
 
             if (!empty($request->chart_account_id)) {
@@ -312,9 +359,9 @@ class BillController extends Controller
             $estatus = Status::getAllAsArray();
 
             $product_services = ProductService::where('created_by', \Auth::user()->creatorId())
-            ->orderBy('name', 'asc')
-            ->get()
-            ->pluck('name', 'id');
+                ->orderBy('name', 'asc')
+                ->get()
+                ->pluck('name', 'id');
 
             $bill->customField = CustomField::getData($bill, 'bill');
             $customFields      = CustomField::where('created_by', '=', \Auth::user()->creatorId())->where('module', '=', 'bill')->get();
@@ -779,7 +826,7 @@ class BillController extends Controller
                 'numero_orden' => $bill->order_number,
                 'detalle' => $bill->items[0]->product['name'],
                 'ncf' => '',
-                
+
             ];
             $resp = Utility::sendEmailTemplateWithDocument('bill_sent', env("MAIL_TO"), $uArr);
             return response()->json(['success' => true, 'msg' => $resp]);
@@ -794,7 +841,7 @@ class BillController extends Controller
         try {
             $bill = Bill::with('debitNote', 'payments.bankAccount', 'items.product.unit')->find($id);
             $vendor      = $bill->vender;
-            
+
             $total = $bill->getAccountTotal();
             $base_imponible = $bill->getAccountTotal() / 1.18;
             $iva = $total - $base_imponible;

@@ -725,15 +725,6 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        {{ Form::label('category_id', __('Category'), ['class' => 'form-label']) }}<x-required></x-required>
-                                        {{ Form::select('category_id', $category, null, ['class' => 'form-control select', 'required' => 'required']) }}
-                                        <div class="text-xs mt-1">
-                                            {{ __('Create category here.') }} <a href="{{ route('product-category.index') }}"><b>{{ __('Create category') }}</b></a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
                                         {{ Form::label('order_number', __('Order Number'), ['class' => 'form-label']) }}
                                         <div class="form-icon-user">
                                             {{ Form::text('order_number', null, ['class' => 'form-control', 'placeholder'=>__('Enter Order Number')]) }}
@@ -875,6 +866,14 @@
                                     <td></td>
                                     <td class="text-end accountamount">
                                         0.00
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                <td width="25%" class="form-group pt-0 flex-nowrap">
+                                     <div class="form-group">
+                                        {{ Form::label('category_id', __('Category'), ['class' => 'form-label']) }}<x-required></x-required>
+                                        {{ Form::select('category_id', $category, 'null', ['class' => 'form-control select', 'required' => 'required']) }}
                                     </td>
                                 </tr>
                             </tbody>
