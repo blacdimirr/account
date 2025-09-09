@@ -536,6 +536,63 @@
         // for item SearchBox ( this function is  custom Js )
         JsSearchBox();
     </script>
+
+    <script>
+/** Calcula y pinta:
+ *  - Retención 5% sobre neto (subTotal)
+ *  - Retención 30% sobre ITBIS (totalTax)
+ *  - Total con impuestos (subTotal + totalTax)
+ *  - Pago final = (subTotal + totalTax) - ret5 - ret30
+ */
+function recalcRetentionsAndFinal() {
+    var sub = parseFloat(($('.subTotal').text() || "0").replace(/,/g,'')) || 0; // Neto sin ITBIS
+    var tax = parseFloat(($('.totalTax').text() || "0").replace(/,/g,'')) || 0; // ITBIS total
+    var grossWithTax = sub + tax;
+
+    var ret5  = +(sub * 0.05).toFixed(2);   // 5% sobre neto
+    var ret30 = +(tax * 0.30).toFixed(2);   // 30% sobre ITBIS
+
+    var finalPayable = +(grossWithTax - ret5 - ret30).toFixed(2);
+
+    // Pinta (si quieres ver el signo menos visualmente, antepón '–' en el text)
+    $('.retentionNet').text(ret5.toFixed(2));
+    $('.retentionIva').text(ret30.toFixed(2));
+    $('.totalAmount').text(grossWithTax.toFixed(2));
+    $('.finalPayable').text(finalPayable.toFixed(2));
+
+    // Inputs ocultos para backend
+    $('.retencion5Input').val(ret5.toFixed(2));
+    $('.retencion30Input').val(ret30.toFixed(2));
+    $('.finalPayableInput').val(finalPayable.toFixed(2));
+}
+
+// Auto-dispara el cálculo cuando cambian los campos relevantes
+$(document).on('keyup change', '.quantity, .price, .discount, .accountAmount', function() {
+    recalcRetentionsAndFinal();
+});
+
+// Cuando se cambia el item (producto/servicio)
+$(document).on('change', '.item', function() {
+    // Da un pequeño margen a que tu AJAX pueble impuestos/precio y luego recalcula
+    setTimeout(recalcRetentionsAndFinal, 50);
+});
+
+// Después de añadir una fila del repeater
+$(document).on('click', '[data-repeater-create]', function() {
+    setTimeout(recalcRetentionsAndFinal, 100);
+});
+
+// Después de eliminar una fila del repeater
+$(document).on('click', '[data-repeater-delete]', function() {
+    setTimeout(recalcRetentionsAndFinal, 100);
+});
+
+// En el load inicial
+$(function () {
+    recalcRetentionsAndFinal();
+});
+</script>
+
 @endpush
 @section('content')
     <div class="row">
@@ -737,46 +794,76 @@
                                     </td>
                                 </tr>
                             </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td></td>
-                                    <td><strong>{{ __('Sub Total') }} ({{ \Auth::user()->currencySymbol() }})</strong>
-                                    </td>
-                                    <td class="text-end subTotal">0.00</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td></td>
-                                    <td><strong>{{ __('Discount') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
-                                    <td class="text-end totalDiscount">0.00</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td></td>
-                                    <td><strong>{{ __('Tax') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
-                                    <td class="text-end totalTax">0.00</td>
-                                    <td></td>
-                                </tr>
-                                <tr>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td>&nbsp;</td>
-                                    <td class="blue-text"><strong>{{ __('Total Amount') }}
-                                            ({{ \Auth::user()->currencySymbol() }})</strong></td>
-                                    <td class="blue-text text-end totalAmount"></td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
+                           <tfoot>
+    <tr>
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
+        <td><strong>{{ __('Sub Total') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
+        <td class="text-end subTotal">0.00</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
+        <td><strong>{{ __('Discount') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
+        <td class="text-end totalDiscount">0.00</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
+        <td><strong>{{ __('Tax') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
+        <td class="text-end totalTax">0.00</td>
+        <td></td>
+    </tr>
+
+    <!-- NUEVO: Retención 5% sobre neto (Sub Total) -->
+    <tr>
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
+        <td class="text-danger">
+            <strong>{{ __('Retención 5% (sobre neto)') }} ({{ \Auth::user()->currencySymbol() }})</strong>
+        </td>
+        <td class="text-end retentionNet">0.00</td>
+        <td></td>
+    </tr>
+
+    <!-- NUEVO: Retención 30% sobre impuestos (ITBIS) -->
+    <tr>
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
+        <td class="text-danger">
+            <strong>{{ __('Retención 30% (sobre ITBIS)') }} ({{ \Auth::user()->currencySymbol() }})</strong>
+        </td>
+        <td class="text-end retentionIva">0.00</td>
+        <td></td>
+    </tr>
+
+    <!-- Total con impuestos (para referencia) -->
+    <tr>
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+        <td class="blue-text">
+            <strong>{{ __('Total con impuestos') }} ({{ \Auth::user()->currencySymbol() }})</strong>
+        </td>
+        <td class="blue-text text-end totalAmount">0.00</td>
+        <td></td>
+    </tr>
+
+    <!-- NUEVO: Pago final al proveedor -->
+    <tr>
+        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
+        <td class="blue-text">
+            <strong>{{ __('Pago final al proveedor') }} ({{ \Auth::user()->currencySymbol() }})</strong>
+        </td>
+        <td class="blue-text text-end finalPayable">0.00</td>
+        <td></td>
+    </tr>
+
+    <!-- (Opcional) inputs ocultos para enviar a backend -->
+    <tr class="d-none">
+        <td colspan="7">
+            <input type="hidden" name="retencion_5" class="retencion5Input" value="0">
+            <input type="hidden" name="retencion_30_itbis" class="retencion30Input" value="0">
+            <input type="hidden" name="pago_final_proveedor" class="finalPayableInput" value="0">
+        </td>
+    </tr>
+</tfoot>
+
                         </table>
                     </div>
                 </div>
