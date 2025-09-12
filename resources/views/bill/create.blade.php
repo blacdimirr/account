@@ -170,38 +170,11 @@
 
 
 
-                    var totalItemPrice = 0;
-                    var priceInput = $('.price');
-                    for (var j = 0; j < priceInput.length; j++) {
-                        if (!isNaN(parseFloat(priceInput[j].value))) {
-                            totalItemPrice += parseFloat(priceInput[j].value);
-                        }
-
-                    }
-
-                    var totalItemTaxPrice = 0;
-                    var itemTaxPriceInput = $('.itemTaxPrice');
-                    for (var j = 0; j < itemTaxPriceInput.length; j++) {
-                        if (!isNaN(parseFloat(itemTaxPriceInput[j].value))) {
-                            totalItemTaxPrice += parseFloat(itemTaxPriceInput[j].value);
-                            $(el.parent().parent().find('.amount')).html(parseFloat(item.totalAmount) +
-                            parseFloat(itemTaxPriceInput[j].value));
-                        }
-                    }
-
-                    var totalItemDiscountPrice = 0;
-                    var itemDiscountPriceInput = $('.discount');
-                    for (var k = 0; k < itemDiscountPriceInput.length; k++) {
-                        if (!isNaN(parseFloat(itemDiscountPriceInput[k].value))) {
-                            totalItemDiscountPrice += parseFloat(itemDiscountPriceInput[k].value);
-                        }
-                    }
-
-
-                    $('.subTotal').html((totalItemPrice + accountSubTotal).toFixed(2));
-                    $('.totalTax').html(totalItemTaxPrice.toFixed(2));
-                    $('.totalAmount').html((parseFloat(totalItemPrice) - parseFloat(
-                        totalItemDiscountPrice) + parseFloat(totalItemTaxPrice)).toFixed(2));
+                    /*
+                     
+                     Campos borrados
+                    
+                    */
 
 
                 },
