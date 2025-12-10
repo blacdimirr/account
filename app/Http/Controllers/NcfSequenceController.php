@@ -1,155 +1,104 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Tests\Feature;
 
-use App\Models\NcfSequence;
-use App\Models\NcfType;
+use App\Http\Controllers\NcfSequenceController;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Tests\TestCase;
 
-class NcfSequenceController extends Controller
+class NcfSequenceControllerTest extends TestCase
 {
-    public function index()
+    use RefreshDatabase;
+
+    protected function setUp(): void
     {
-        if (! Auth::user()->can('manage ncf sequence')) {
-            return redirect()->back()->with('error', __('Permission denied.'));
-        }
+        parent::setUp();
 
-        $sequences = NcfSequence::with('ncfType')
-            ->where('created_by', Auth::user()->creatorId())
-            ->get();
+        // Crear usuario simulado y autenticar
+        $user = User::factory()->create();
+        Auth::login($user);
 
-        return view('ncf_sequences.index', compact('sequences'));
+        // Mockear creatorId() para devolver el id del usuario
+        Auth::user()->creatorId = fn() => $user->id;
     }
 
-    public function create()
+    /** @test */
+    public function valida_payload_correcto()
     {
-        if (! Auth::user()->can('create ncf sequence')) {
-            return response()->json(['error' => __('Permission denied.')], 401);
-        }
+        $controller = new NcfSequenceController();
 
-        $types = NcfType::where('created_by', Auth::user()->creatorId())->where('is_active', true)->pluck('description', 'id');
+        $request = Request::create('/ncf-sequences', 'POST', [
+            'ncf_type_id'   => 1,
+            'serie'         => 'A',
+            'start_number'  => 1,
+            'end_number'    => 100,
+            'current_number'=> 0,
+            'valid_from'    => '2025-01-01',
+            'valid_until'   => '2025-12-31',
+            'is_active'     => true,
+        ]);
 
-        return view('ncf_sequences.create', compact('types'));
+        $payload = $controller->validatePayload($request);
+
+        $this->assertEquals(1, $payload['ncf_type_id']);
+        $this->assertEquals('A', $payload['serie']);
+        $this->assertEquals(1, $payload['start_number']);
+        $this->assertEquals(100, $payload['end_number']);
+        $this->assertEquals(0, $payload['current_number']);
+        $this->assertTrue($payload['is_active']);
     }
 
-    public function store(Request $request)
+    /** @test */
+    public function falla_si_start_number_es_mayor_que_end_number()
     {
-        if (! Auth::user()->can('create ncf sequence')) {
-            return redirect()->back()->with('error', __('Permission denied.'));
-        }
+        $controller = new NcfSequenceController();
 
-        $payload = $this->validatePayload($request, true);
+        $request = Request::create('/ncf-sequences', 'POST', [
+            'ncf_type_id'   => 1,
+            'start_number'  => 200,
+            'end_number'    => 100,
+        ]);
 
-        NcfSequence::create($payload + ['created_by' => Auth::user()->creatorId()]);
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
 
-        return redirect()->route('ncf-sequences.index')->with('success', __('NCF sequence created successfully.'));
+        $controller->validatePayload($request);
     }
 
-    public function edit(NcfSequence $ncf_sequence)
+    /** @test */
+    public function falla_si_valid_from_es_mayor_que_valid_until()
     {
-        if (! Auth::user()->can('edit ncf sequence') || $ncf_sequence->created_by !== Auth::user()->creatorId()) {
-            return response()->json(['error' => __('Permission denied.')], 401);
-        }
+        $controller = new NcfSequenceController();
 
-        $types = NcfType::where('created_by', Auth::user()->creatorId())->where('is_active', true)->pluck('description', 'id');
+        $request = Request::create('/ncf-sequences', 'POST', [
+            'ncf_type_id'   => 1,
+            'start_number'  => 1,
+            'end_number'    => 10,
+            'valid_from'    => '2025-12-31',
+            'valid_until'   => '2025-01-01',
+        ]);
 
-        return view('ncf_sequences.edit', compact('ncf_sequence', 'types'));
+        $this->expectException(\Symfony\Component\HttpKernel\Exception\HttpException::class);
+
+        $controller->validatePayload($request);
     }
 
-    public function update(Request $request, NcfSequence $ncf_sequence)
+    /** @test */
+    public function asigna_current_number_por_defecto_si_no_se_envia()
     {
-        if (! Auth::user()->can('edit ncf sequence') || $ncf_sequence->created_by !== Auth::user()->creatorId()) {
-            return redirect()->back()->with('error', __('Permission denied.'));
-        }
+        $controller = new NcfSequenceController();
 
-        $payload = $this->validatePayload($request, false, $ncf_sequence->id);
+        $request = Request::create('/ncf-sequences', 'POST', [
+            'ncf_type_id'   => 1,
+            'start_number'  => 10,
+            'end_number'    => 20,
+        ]);
 
-        $ncf_sequence->update($payload);
+        $payload = $controller->validatePayload($request);
 
-        return redirect()->route('ncf-sequences.index')->with('success', __('NCF sequence updated successfully.'));
-    }
-
-    public function destroy(NcfSequence $ncf_sequence)
-    {
-        if (! Auth::user()->can('delete ncf sequence') || $ncf_sequence->created_by !== Auth::user()->creatorId()) {
-            return redirect()->back()->with('error', __('Permission denied.'));
-        }
-
-        $ncf_sequence->delete();
-
-        return redirect()->route('ncf-sequences.index')->with('success', __('NCF sequence deleted successfully.'));
-    }
-
-    private function validatePayload(Request $request, bool $defaultActive = true, ?int $sequenceId = null): array
-    {
-        $creatorId = Auth::user()->creatorId();
-        $validator = \Validator::make(
-            $request->all(),
-            [
-                'ncf_type_id' => [
-                    'required',
-                    Rule::exists('ncf_types', 'id')->where(fn ($query) => $query->where('created_by', $creatorId)),
-                ],
-                'serie' => 'nullable|string|max:20',
-                'start_number' => 'required|integer|min:1',
-                'end_number' => 'required|integer|min:1',
-                'current_number' => 'nullable|integer|min:0',
-                'valid_from' => 'nullable|date',
-                'valid_until' => 'nullable|date',
-                'is_active' => 'nullable|boolean',
-            ]
-        );
-
-        $validator->after(function ($validator) use ($request) {
-            if ($request->start_number > $request->end_number) {
-                $validator->errors()->add('start_number', __('The start number must be lower than the end number.'));
-            }
-
-            if (! empty($request->valid_from) && ! empty($request->valid_until) && $request->valid_from > $request->valid_until) {
-                $validator->errors()->add('valid_from', __('The validity start date must be before the end date.'));
-            }
-
-            if ($request->filled('current_number')) {
-                $minimumAllowed = max(0, (int) $request->start_number - 1);
-
-                if ((int) $request->current_number < $minimumAllowed) {
-                    $validator->errors()->add('current_number', __('The current number must start at the previous value in the range.'));
-                }
-
-                if ((int) $request->current_number > (int) $request->end_number) {
-                    $validator->errors()->add('current_number', __('The current number cannot exceed the end of the range.'));
-                }
-            }
-        });
-
-        if ($validator->fails()) {
-            $messages = $validator->getMessageBag();
-
-            redirect()->back()->with('error', $messages->first())->send();
-            exit;
-        }
-
-        $validated = $validator->validated();
-        $startNumber = (int) $validated['start_number'];
-        $validated['current_number'] = array_key_exists('current_number', $validated)
-            ? (int) $validated['current_number']
-            : max(0, $startNumber - 1);
-
-        $validated['is_active'] = array_key_exists('is_active', $validated)
-            ? (bool) $validated['is_active']
-            : $defaultActive;
-
-        return [
-            'ncf_type_id' => (int) $validated['ncf_type_id'],
-            'serie' => $validated['serie'] ?? null,
-            'start_number' => $startNumber,
-            'end_number' => (int) $validated['end_number'],
-            'current_number' => $validated['current_number'],
-            'valid_from' => $validated['valid_from'] ?? null,
-            'valid_until' => $validated['valid_until'] ?? null,
-            'is_active' => $validated['is_active'],
-        ];
+        // current_number debe ser start_number - 1
+        $this->assertEquals(9, $payload['current_number']);
     }
 }
