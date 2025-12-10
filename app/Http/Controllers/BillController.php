@@ -40,6 +40,8 @@ use CoinGate\Exception\Api\BadRequest;
 use NumberToWords\NumberToWords;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class BillController extends Controller
 {

@@ -11,11 +11,21 @@ class Dgii607Export implements FromCollection, WithHeadings
 {
     public function __construct(private int $month, private int $year, private int $creatorId)
     {
+    private int $month;
+    private int $year;
+    private int $creatorId;
+
+    public function __construct(int $month, int $year, int $creatorId)
+    {
+        $this->month = $month;
+        $this->year = $year;
+        $this->creatorId = $creatorId;
     }
 
     public function collection(): Collection
     {
         $invoices = Invoice::with('customer', 'ncfType', 'items')
+        $invoices = Invoice::with(['customer', 'ncfType', 'items'])
             ->where('created_by', $this->creatorId)
             ->whereYear('issue_date', $this->year)
             ->whereMonth('issue_date', $this->month)
@@ -54,4 +64,5 @@ class Dgii607Export implements FromCollection, WithHeadings
             'ITBIS Facturado',
         ];
     }
+}
 }
