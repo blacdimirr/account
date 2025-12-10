@@ -141,7 +141,7 @@ class NcfSequenceController extends Controller
             'current_number' => $currentNumber,
             'valid_from' => $validated['valid_from'] ?? null,
             'valid_until' => $validated['valid_until'] ?? null,
-            'is_active' => array_key_exists('is_active', $validated) ? (bool) $validated['is_active'] : $defaultActive,
+            'is_active' => array_key_exists('is_active', $validated) ? $request->boolean('is_active') : $defaultActive,
         ];
     }
 }

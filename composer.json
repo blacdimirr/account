@@ -61,7 +61,10 @@
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
             "Modules\\": "Modules/"
-        }
+        },
+        "classmap": [
+            "app/Http/Controllers/RefreshDatabase.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
