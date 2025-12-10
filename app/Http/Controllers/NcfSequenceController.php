@@ -6,6 +6,7 @@ use App\Models\NcfSequence;
 use App\Models\NcfType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class NcfSequenceController extends Controller
@@ -40,19 +41,9 @@ class NcfSequenceController extends Controller
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
-        $this->validatePayload($request);
+        $payload = $this->validatePayload($request, true);
 
-        NcfSequence::create([
-            'ncf_type_id' => $request->ncf_type_id,
-            'serie' => $request->serie,
-            'start_number' => $request->start_number,
-            'end_number' => $request->end_number,
-            'current_number' => $request->current_number,
-            'valid_from' => $request->valid_from,
-            'valid_until' => $request->valid_until,
-            'is_active' => $request->boolean('is_active', true),
-            'created_by' => Auth::user()->creatorId(),
-        ]);
+        NcfSequence::create($payload + ['created_by' => Auth::user()->creatorId()]);
 
         return redirect()->route('ncf-sequences.index')->with('success', __('NCF sequence created successfully.'));
     }
@@ -74,18 +65,9 @@ class NcfSequenceController extends Controller
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
-        $this->validatePayload($request, $ncf_sequence->id);
+        $payload = $this->validatePayload($request, false, $ncf_sequence->id);
 
-        $ncf_sequence->update([
-            'ncf_type_id' => $request->ncf_type_id,
-            'serie' => $request->serie,
-            'start_number' => $request->start_number,
-            'end_number' => $request->end_number,
-            'current_number' => $request->current_number,
-            'valid_from' => $request->valid_from,
-            'valid_until' => $request->valid_until,
-            'is_active' => $request->boolean('is_active', false),
-        ]);
+        $ncf_sequence->update($payload);
 
         return redirect()->route('ncf-sequences.index')->with('success', __('NCF sequence updated successfully.'));
     }
@@ -101,10 +83,10 @@ class NcfSequenceController extends Controller
         return redirect()->route('ncf-sequences.index')->with('success', __('NCF sequence deleted successfully.'));
     }
 
-    private function validatePayload(Request $request, ?int $sequenceId = null): void
+    private function validatePayload(Request $request, bool $defaultActive = true, ?int $sequenceId = null): array
     {
         $creatorId = Auth::user()->creatorId();
-        $validator = \Validator::make(
+        $validated = Validator::make(
             $request->all(),
             [
                 'ncf_type_id' => [
@@ -119,9 +101,7 @@ class NcfSequenceController extends Controller
                 'valid_until' => 'nullable|date',
                 'is_active' => 'nullable|boolean',
             ]
-        );
-
-        $validator->after(function ($validator) use ($request) {
+        )->after(function ($validator) use ($request) {
             if ($request->start_number > $request->end_number) {
                 $validator->errors()->add('start_number', __('The start number must be lower than the end number.'));
             }
@@ -129,13 +109,37 @@ class NcfSequenceController extends Controller
             if (! empty($request->valid_from) && ! empty($request->valid_until) && $request->valid_from > $request->valid_until) {
                 $validator->errors()->add('valid_from', __('The validity start date must be before the end date.'));
             }
-        });
 
-        if ($validator->fails()) {
-            $messages = $validator->getMessageBag();
+            if ($request->filled('current_number')) {
+                $minimumAllowed = max(0, (int) $request->start_number - 1);
 
-            redirect()->back()->with('error', $messages->first())->send();
-            exit;
-        }
+                if ((int) $request->current_number < $minimumAllowed) {
+                    $validator->errors()->add('current_number', __('The current number must start at the previous value in the range.'));
+                }
+
+                if ((int) $request->current_number > (int) $request->end_number) {
+                    $validator->errors()->add('current_number', __('The current number cannot exceed the end of the range.'));
+                }
+            }
+        })->validate();
+        $startNumber = (int) $validated['start_number'];
+        $validated['current_number'] = array_key_exists('current_number', $validated)
+            ? (int) $validated['current_number']
+            : max(0, $startNumber - 1);
+
+        $validated['is_active'] = array_key_exists('is_active', $validated)
+            ? (bool) $validated['is_active']
+            : $defaultActive;
+
+        return [
+            'ncf_type_id' => (int) $validated['ncf_type_id'],
+            'serie' => $validated['serie'] ?? null,
+            'start_number' => $startNumber,
+            'end_number' => (int) $validated['end_number'],
+            'current_number' => $validated['current_number'],
+            'valid_from' => $validated['valid_from'] ?? null,
+            'valid_until' => $validated['valid_until'] ?? null,
+            'is_active' => $validated['is_active'],
+        ];
     }
 }
