@@ -40,19 +40,9 @@ class NcfSequenceController extends Controller
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
-        $this->validatePayload($request);
+        $payload = $this->validatePayload($request, true);
 
-        NcfSequence::create([
-            'ncf_type_id' => $request->ncf_type_id,
-            'serie' => $request->serie,
-            'start_number' => $request->start_number,
-            'end_number' => $request->end_number,
-            'current_number' => $request->current_number,
-            'valid_from' => $request->valid_from,
-            'valid_until' => $request->valid_until,
-            'is_active' => $request->boolean('is_active', true),
-            'created_by' => Auth::user()->creatorId(),
-        ]);
+        NcfSequence::create($payload + ['created_by' => Auth::user()->creatorId()]);
 
         return redirect()->route('ncf-sequences.index')->with('success', __('NCF sequence created successfully.'));
     }
@@ -74,18 +64,9 @@ class NcfSequenceController extends Controller
             return redirect()->back()->with('error', __('Permission denied.'));
         }
 
-        $this->validatePayload($request, $ncf_sequence->id);
+        $payload = $this->validatePayload($request, false, $ncf_sequence->id);
 
-        $ncf_sequence->update([
-            'ncf_type_id' => $request->ncf_type_id,
-            'serie' => $request->serie,
-            'start_number' => $request->start_number,
-            'end_number' => $request->end_number,
-            'current_number' => $request->current_number,
-            'valid_from' => $request->valid_from,
-            'valid_until' => $request->valid_until,
-            'is_active' => $request->boolean('is_active', false),
-        ]);
+        $ncf_sequence->update($payload);
 
         return redirect()->route('ncf-sequences.index')->with('success', __('NCF sequence updated successfully.'));
     }
@@ -101,7 +82,7 @@ class NcfSequenceController extends Controller
         return redirect()->route('ncf-sequences.index')->with('success', __('NCF sequence deleted successfully.'));
     }
 
-    private function validatePayload(Request $request, ?int $sequenceId = null): void
+    private function validatePayload(Request $request, bool $defaultActive = true, ?int $sequenceId = null): array
     {
         $creatorId = Auth::user()->creatorId();
         $validator = \Validator::make(
@@ -129,6 +110,18 @@ class NcfSequenceController extends Controller
             if (! empty($request->valid_from) && ! empty($request->valid_until) && $request->valid_from > $request->valid_until) {
                 $validator->errors()->add('valid_from', __('The validity start date must be before the end date.'));
             }
+
+            if ($request->filled('current_number')) {
+                $minimumAllowed = max(0, (int) $request->start_number - 1);
+
+                if ((int) $request->current_number < $minimumAllowed) {
+                    $validator->errors()->add('current_number', __('The current number must start at the previous value in the range.'));
+                }
+
+                if ((int) $request->current_number > (int) $request->end_number) {
+                    $validator->errors()->add('current_number', __('The current number cannot exceed the end of the range.'));
+                }
+            }
         });
 
         if ($validator->fails()) {
@@ -137,5 +130,16 @@ class NcfSequenceController extends Controller
             redirect()->back()->with('error', $messages->first())->send();
             exit;
         }
+
+        return [
+            'ncf_type_id' => $request->integer('ncf_type_id'),
+            'serie' => $request->serie,
+            'start_number' => $request->integer('start_number'),
+            'end_number' => $request->integer('end_number'),
+            'current_number' => $request->filled('current_number') ? $request->integer('current_number') : null,
+            'valid_from' => $request->valid_from,
+            'valid_until' => $request->valid_until,
+            'is_active' => $request->boolean('is_active', $defaultActive),
+        ];
     }
 }
