@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 class Dgii606Export implements FromCollection, WithHeadings
 {
     public function __construct(private int $month, private int $year, private int $creatorId)
+    public function __construct(private int $month, private int $year)
     {
     }
 
@@ -18,6 +19,7 @@ class Dgii606Export implements FromCollection, WithHeadings
     {
         $bills = Bill::with('vender', 'ncfType', 'payments', 'items')
             ->where('created_by', $this->creatorId)
+        $bills = Bill::with('vender', 'ncfType')
             ->whereYear('bill_date', $this->year)
             ->whereMonth('bill_date', $this->month)
             ->get();
@@ -55,6 +57,18 @@ class Dgii606Export implements FromCollection, WithHeadings
                 round($baseAmount, 2),
                 $bill->getTotal(),
                 round($bill->getTotalTax(), 2),
+            $retentions = RetentionRecord::where('document_type', 'bill')
+                ->where('document_id', $bill->id)
+                ->get();
+
+            return [
+                $bill->bill_date,
+                optional($bill->vender)->name,
+                optional($bill->vender)->billing_phone,
+                optional($bill->ncfType)->code ?? '',
+                $bill->ncf_number ?? '',
+                $bill->getTotal(),
+                $bill->getTotalTax(),
                 (float) $retentions->where('retention_type', 'itbis')->sum('retained_amount'),
                 (float) $retentions->where('retention_type', 'isr')->sum('retained_amount'),
             ];
@@ -71,6 +85,8 @@ class Dgii606Export implements FromCollection, WithHeadings
             'Tipo NCF',
             'NCF',
             'Base Imponible',
+            'Tipo NCF',
+            'NCF',
             'Monto Facturado',
             'ITBIS Facturado',
             'ITBIS Retenido',
