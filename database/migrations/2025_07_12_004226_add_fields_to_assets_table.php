@@ -14,11 +14,11 @@ return new class extends Migration
                  $table->unsignedBigInteger('proveedor_id')->nullable();
 
             // Asegúrate de que 'vender_id' en 'venders' tenga un índice único
-            $table->foreign('proveedor_id')
+            /*$table->foreign('proveedor_id')
                 ->references('vender_id')
                 ->on('venders')
                 ->onDelete('set null');
-            }
+            */}
 
            
         });
