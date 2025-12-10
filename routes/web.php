@@ -38,6 +38,8 @@ use App\Http\Controllers\ChartOfAccountController;
 use App\Http\Controllers\PaytmPaymentController;
 use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\NcfSequenceController;
+use App\Http\Controllers\NcfTypeController;
 use App\Http\Controllers\JournalEntryController;
 use App\Http\Controllers\ToyyibpayController;
 use App\Http\Controllers\PayFastController;
@@ -46,6 +48,7 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\NotificationTemplatesController;
 use App\Http\Controllers\BankTransferController;
 use App\Http\Controllers\AiTemplateController;
+use App\Http\Controllers\DgiiReportController;
 use App\Http\Controllers\IyzipayController;
 use App\Http\Controllers\SspayController;
 use App\Http\Controllers\PaytabController;
@@ -626,6 +629,9 @@ Route::post('product-category/getaccount', [ProductServiceCategoryController::cl
 
 Route::resource('taxes', TaxController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
+Route::resource('ncf-types', NcfTypeController::class)->middleware(['auth', 'XSS', 'revalidate']);
+Route::resource('ncf-sequences', NcfSequenceController::class)->middleware(['auth', 'XSS', 'revalidate']);
+
 Route::resource('product-unit', ProductServiceUnitController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
 Route::get('invoice/pdf/{id}', [InvoiceController::class, 'invoice'])->name('invoice.pdf')->middleware(['XSS', 'revalidate']);
@@ -837,6 +843,8 @@ Route::group(
         Route::get('report/ledger', [ReportController::class, 'ledgerSummary'])->name('report.ledger');
         Route::get('report/trial-balance/{view?}', [ReportController::class, 'trialBalanceSummary'])->name('trial.balance');
         Route::post('export/trial-balance', [ReportController::class, 'trialBalanceExport'])->name('trial.balance.export');
+        Route::get('report/dgii', [DgiiReportController::class, 'index'])->name('report.dgii');
+        Route::post('report/dgii/export', [DgiiReportController::class, 'export'])->name('report.dgii.export');
 
         Route::get('report/filter-chart', [ReportController::class, 'getFilteredChartData'])->name('filter.chart.data');
         Route::post('export/profit-loss', [ReportController::class, 'profitLossExport'])->name('profit.loss.export');
