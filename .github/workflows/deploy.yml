@@ -1,0 +1,25 @@
+name: Deploy to Plesk
+
+on:
+  push:
+    branches:
+      - main   # o master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: account.ardan.com.do
+          username: root
+          password: C@mbios9513
+          script: |
+            cd /var/www/vhosts/account.ardan.com.do/httpdocs/laravel_a45591
+            git pull origin main
+            php artisan migrate --force
+            php artisan cache:clear
