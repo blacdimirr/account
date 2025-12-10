@@ -20,9 +20,4 @@ class BillPayment extends Model
     {
         return $this->hasOne('App\Models\BankAccount', 'id', 'account_id');
     }
-
-    public function bill()
-    {
-        return $this->belongsTo(Bill::class);
-    }
 }

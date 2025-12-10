@@ -14,21 +14,8 @@ class Invoice extends Model
         'ref_number',
         'status',
         'category_id',
-        'ncf_type_id',
-        'ncf_sequence_id',
-        'ncf_number',
         'created_by',
     ];
-
-    public function ncfType()
-    {
-        return $this->belongsTo(NcfType::class);
-    }
-
-    public function ncfSequence()
-    {
-        return $this->belongsTo(NcfSequence::class);
-    }
 
     public function tax()
     {

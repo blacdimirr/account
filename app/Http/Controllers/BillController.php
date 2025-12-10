@@ -30,16 +30,10 @@ use App\Models\ChartOfAccount;
 use App\Models\DebitNote;
 use App\Models\Status;
 use App\Models\TransactionLines;
-use App\Models\NcfSequence;
-use App\Models\RetentionRecord;
-use App\Services\NcfService;
-use App\Services\RetentionService;
 use Exception;
 use Carbon\Carbon;
 use CoinGate\Exception\Api\BadRequest;
 use NumberToWords\NumberToWords;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class BillController extends Controller
 {
@@ -114,13 +108,7 @@ class BillController extends Controller
             $subAccounts->where('chart_of_accounts.created_by', \Auth::user()->creatorId());
             $subAccounts = $subAccounts->get()->toArray();
 
-            $ncfSequences = NcfSequence::with('ncfType')
-                ->active()
-                ->where('created_by', \Auth::user()->creatorId())
-                ->get()
-                ->pluck('display_name', 'id');
-
-            return view('bill.create', compact('venders', 'bill_number', 'product_services', 'category', 'customFields', 'vendorId', 'chartAccounts', 'subAccounts', 'ncfSequences'));
+            return view('bill.create', compact('venders', 'bill_number', 'product_services', 'category', 'customFields', 'vendorId', 'chartAccounts', 'subAccounts'));
         } else {
             return response()->json(['error' => __('Permission denied.')], 401);
         }
@@ -146,12 +134,6 @@ class BillController extends Controller
                     'items.*.itemTaxPrice' => 'nullable|numeric|min:0',
                     // si te la envían por cada ítem:
                     'items.*.category_id'  => 'nullable|integer',
-                    'ncf_sequence_id' => [
-                        'nullable',
-                        Rule::exists('ncf_sequences', 'id')->where(function ($query) {
-                            return $query->where('created_by', \Auth::user()->creatorId());
-                        }),
-                    ],
                 ]
             );
 
@@ -172,25 +154,7 @@ class BillController extends Controller
             $bill->order_number   = !empty($request->order_number) ? $request->order_number : 0;
             $bill->discount_apply = isset($request->discount_apply) ? 1 : 0;
             $bill->created_by     = \Auth::user()->creatorId();
-
-            if (!empty($request->ncf_sequence_id)) {
-                $sequence = NcfSequence::with('ncfType')
-                    ->where('created_by', \Auth::user()->creatorId())
-                    ->find($request->ncf_sequence_id);
-
-                if (empty($sequence)) {
-                    return redirect()->back()->withInput()->with('error', __('Unable to find the selected NCF series.'));
-                }
-
-                try {
-                    $bill->ncf_sequence_id = $sequence->id;
-                    $bill->ncf_type_id = $sequence->ncf_type_id;
-                    $bill->ncf_number = app(NcfService::class)->reserveNextNumber($sequence, Carbon::parse($request->bill_date));
-                } catch (ValidationException $e) {
-                    return redirect()->back()->withInput()->with('error', collect($e->errors())->flatten()->first());
-                }
-            }
-            $bill->save();
+            $bill->save();            
             Utility::starting_number($bill->bill_id + 1, 'bill');
             if (!empty($request->customField)){
                 CustomField::saveData($bill, $request->customField);
@@ -320,8 +284,6 @@ class BillController extends Controller
                     return redirect()->back()->with('error', __('Webhook call failed.'));
                 }
             }
-
-            app(RetentionService::class)->storeBillRetentions($bill);
 
             return redirect()->route('bill.index', $bill->id)->with('success', __('Bill successfully created.'));
         } else {
@@ -640,8 +602,6 @@ class BillController extends Controller
         //    (eliminar cualquier lógica previa relacionada)
         // TransactionLines::where(...)->delete(); // ← ya NO
         // (NO Utility::addTransactionLines)
-        RetentionRecord::where('document_type', 'bill')->where('document_id', $bill->id)->delete();
-        app(RetentionService::class)->storeBillRetentions($bill);
 
         return redirect()->route('bill.index')->with('success', __('Bill successfully updated.'));
     }
@@ -1008,8 +968,6 @@ class BillController extends Controller
             }
             $billPayment->save();
 
-            app(RetentionService::class)->storePaymentRetentions($billPayment);
-
             $bill  = Bill::where('id', $bill_id)->first();
             $due   = $bill->getDue();
             $total = $bill->getTotal();
@@ -1087,8 +1045,6 @@ class BillController extends Controller
         if (\Auth::user()->can('delete payment bill')) {
             $payment = BillPayment::find($payment_id);
             BillPayment::where('id', '=', $payment_id)->delete();
-
-            RetentionRecord::where('document_type', 'bill_payment')->where('document_id', $payment_id)->delete();
 
             $bill = Bill::where('id', $bill_id)->first();
 

@@ -720,13 +720,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        {{ Form::label('ncf_sequence_id', __('NCF Series'), ['class' => 'form-label']) }}
-                                        {{ Form::select('ncf_sequence_id', $ncfSequences ?? [], null, ['class' => 'form-control select', 'placeholder' => __('Select NCF series')]) }}
-                                        <div class="text-xs mt-1">{{ __('Optional: assigns the next available NCF within the selected series.') }}</div>
-                                    </div>
-                                </div>
 
                                 <div class="col-md-6">
                                     <div class="form-group">
