@@ -46,6 +46,7 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\NotificationTemplatesController;
 use App\Http\Controllers\BankTransferController;
 use App\Http\Controllers\AiTemplateController;
+use App\Http\Controllers\DgiiReportController;
 use App\Http\Controllers\IyzipayController;
 use App\Http\Controllers\SspayController;
 use App\Http\Controllers\PaytabController;
@@ -837,6 +838,8 @@ Route::group(
         Route::get('report/ledger', [ReportController::class, 'ledgerSummary'])->name('report.ledger');
         Route::get('report/trial-balance/{view?}', [ReportController::class, 'trialBalanceSummary'])->name('trial.balance');
         Route::post('export/trial-balance', [ReportController::class, 'trialBalanceExport'])->name('trial.balance.export');
+        Route::get('report/dgii', [DgiiReportController::class, 'index'])->name('report.dgii');
+        Route::post('report/dgii/export', [DgiiReportController::class, 'export'])->name('report.dgii.export');
 
         Route::get('report/filter-chart', [ReportController::class, 'getFilteredChartData'])->name('filter.chart.data');
         Route::post('export/profit-loss', [ReportController::class, 'profitLossExport'])->name('profit.loss.export');
