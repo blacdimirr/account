@@ -35,7 +35,8 @@
                     // for item SearchBox ( this function is  custom Js )
                     JsSearchBox();
 
-                    $('.select2').select2();
+                    // $('.select2').select2();
+                    select2();
                 },
                 hide: function(deleteElement) {
                     if (confirm('Are you sure you want to delete this element?')) {
@@ -101,11 +102,95 @@
             $('#vender_detail').addClass('d-none');
         })
 
+        // $(document).on('change', '.item', function() {
+        //     var iteams_id = $(this).val();
+        //     var url = $(this).data('url');
+        //     var el = $(this);
+
+
+        //     $.ajax({
+        //         url: url,
+        //         type: 'POST',
+        //         headers: {
+        //             'X-CSRF-TOKEN': jQuery('#token').val()
+        //         },
+        //         data: {
+        //             'product_id': iteams_id
+        //         },
+        //         cache: false,
+        //         success: function(data) {
+        //             var item = JSON.parse(data);
+        //             // console.log(item)
+
+        //             $(el.parent().parent().find('.quantity')).val(1);
+        //             $(el.parent().parent().find('.price')).val(item.product.purchase_price);
+        //             $(el.parent().parent().parent().find('.pro_description')).val(item.product.description);
+
+        //             console.log(46,item.product.description,item.product.purchase_price,el);
+
+        //             var taxes = '';
+        //             var tax = [];
+
+        //             var totalItemTaxRate = 0;
+        //             if (item.taxes == 0) {
+        //                 taxes += '-';
+        //             } else {
+        //                 for (var i = 0; i < item.taxes.length; i++) {
+        //                     taxes += '<span class="badge bg-primary mt-1 mr-2">' + item.taxes[i].name +
+        //                         ' ' + '(' + item.taxes[i].rate + '%)' + '</span>';
+        //                     tax.push(item.taxes[i].id);
+        //                     totalItemTaxRate += parseFloat(item.taxes[i].rate);
+        //                 }
+        //             }
+        //             var itemTaxPrice = parseFloat((totalItemTaxRate / 100) * (item.product
+        //                 .purchase_price * 1));
+
+        //             $(el.parent().parent().find('.itemTaxPrice')).val(itemTaxPrice.toFixed(2));
+        //             $(el.parent().parent().find('.itemTaxRate')).val(totalItemTaxRate.toFixed(2));
+        //             $(el.parent().parent().find('.taxes')).html(taxes);
+        //             $(el.parent().parent().find('.tax')).val(tax);
+        //             $(el.parent().parent().find('.unit')).html(item.unit);
+        //             $(el.parent().parent().find('.discount')).val(0);
+        //             // $(el.parent().parent().find('.amount')).html(item.totalAmount);
+
+
+        //             var inputs = $(".amount");
+        //             var subTotal = 0;
+        //             for (var i = 0; i < inputs.length; i++) {
+        //                 subTotal = parseFloat(subTotal) + parseFloat($(inputs[i]).html());
+        //             }
+
+
+        //             var accountinputs = $(".accountamount");
+        //             var accountSubTotal = 0;
+        //             for (var i = 0; i < accountinputs.length; i++) {
+        //                 var currentInputValue = parseFloat(accountinputs[i].innerHTML);
+        //                 // console.log(45,iteams_id,currentInputValue);
+        //                 if (!isNaN(currentInputValue)) {
+        //                     accountSubTotal += currentInputValue;
+        //                     console.log(45,iteams_id,currentInputValue);
+        //                 }
+        //             }
+
+
+
+        //             /*
+
+        //              Campos borrados
+
+        //             */
+
+
+        //         },
+        //     });
+        // });
+
         $(document).on('change', '.item', function() {
             var iteams_id = $(this).val();
             var url = $(this).data('url');
-            var el = $(this);
+            // var el = $(this);
 
+            var row = $(this).closest('tr');
 
             $.ajax({
                 url: url,
@@ -119,17 +204,15 @@
                 cache: false,
                 success: function(data) {
                     var item = JSON.parse(data);
-                    console.log(item)
 
-                    $(el.parent().parent().find('.quantity')).val(1);
-                    $(el.parent().parent().find('.price')).val(item.product.purchase_price);
-                    $(el.parent().parent().parent().find('.pro_description')).val(item.product
-                        .description);
+                    $(row).find('.quantity').val(1);
+                    $(row).find('.price').val(item.product.purchase_price);
+                    $(row).find('.pro_description').val(item.product.description);
 
                     var taxes = '';
                     var tax = [];
-
                     var totalItemTaxRate = 0;
+
                     if (item.taxes == 0) {
                         taxes += '-';
                     } else {
@@ -140,17 +223,16 @@
                             totalItemTaxRate += parseFloat(item.taxes[i].rate);
                         }
                     }
+
                     var itemTaxPrice = parseFloat((totalItemTaxRate / 100) * (item.product
                         .purchase_price * 1));
 
-                    $(el.parent().parent().find('.itemTaxPrice')).val(itemTaxPrice.toFixed(2));
-                    $(el.parent().parent().find('.itemTaxRate')).val(totalItemTaxRate.toFixed(2));
-                    $(el.parent().parent().find('.taxes')).html(taxes);
-                    $(el.parent().parent().find('.tax')).val(tax);
-                    $(el.parent().parent().find('.unit')).html(item.unit);
-                    $(el.parent().parent().find('.discount')).val(0);
-                    // $(el.parent().parent().find('.amount')).html(item.totalAmount);
-
+                    $(row).find('.itemTaxPrice').val(itemTaxPrice.toFixed(2));
+                    $(row).find('.itemTaxRate').val(totalItemTaxRate.toFixed(2));
+                    $(row).find('.taxes').html(taxes);
+                    $(row).find('.tax').val(tax);
+                    $(row).find('.unit').html(item.unit);
+                    $(row).find('.discount').val(0);
 
                     var inputs = $(".amount");
                     var subTotal = 0;
@@ -168,20 +250,18 @@
                         }
                     }
 
-
+                    console.log(item);
 
                     /*
-                     
-                     Campos borrados
-                    
+
+                        Campos borrados
+
                     */
-
-
                 },
             });
         });
 
-        $(document).on('keyup', '.quantity', function() {
+        $(document).on('keyup change', '.quantity', function() {
             var quntityTotalTaxPrice = 0;
 
             var el = $(this).parent().parent().parent().parent();
@@ -466,26 +546,29 @@
 
             // console.log(subTotal)
 
-
             $('.subTotal').text((totalAccount + itemSubTotal).toFixed(2));
             $('.totalAmount').text((parseFloat((subTotal + itemSubTotal) + (totalItemTaxPrice))).toFixed(2));
 
 
         })
 
-        $(document).on('change', '.item', function () {
-        $('.item option').prop('hidden', false);
-        $('.item :selected').each(function () {
-            var id = $(this).val();
-                $(".item option[value=" + id + "]").prop("hidden", true);
+        $(document).on('change', '.item', function() {
+            $('.item option').prop('hidden', false);
+            $('.item :selected').each(function() {
+                var id = $(this).val();
+                if (id) {
+                    $(".item option[value=" + id + "]").prop("hidden", true);
+                }
             });
         });
 
-        $(document).on('click', '[data-repeater-create]', function () {
+        $(document).on('click', '[data-repeater-create]', function() {
             $('.item option').prop('hidden', false);
-            $('.item :selected').each(function () {
+            $('.item :selected').each(function() {
                 var id = $(this).val();
-                $(".item option[value=" + id + "]").prop("hidden", true);
+                if (id) {
+                    $(".item option[value=" + id + "]").prop("hidden", true);
+                }
             });
         })
 
@@ -500,7 +583,7 @@
             $(".discount").change();
 
             $('.item option').prop('hidden', false);
-            $('.item :selected').each(function () {
+            $('.item :selected').each(function() {
                 var id = $(this).val();
                 $(".item option[value=" + id + "]").prop("hidden", true);
             });
@@ -511,65 +594,86 @@
     </script>
 
     <script>
-/** Calcula y pinta:
- *  - Retención 5% sobre neto (subTotal)
- *  - Retención 30% sobre ITBIS (totalTax)
- *  - Total con impuestos (subTotal + totalTax)
- *  - Pago final = (subTotal + totalTax) - ret5 - ret30
- */
-function recalcRetentionsAndFinal() {
-    var sub = parseFloat(($('.subTotal').text() || "0").replace(/,/g,'')) || 0; // Neto sin ITBIS
-    var tax = parseFloat(($('.totalTax').text() || "0").replace(/,/g,'')) || 0; // ITBIS total
-    var grossWithTax = sub + tax;
+        /** Calcula y pinta:
+         *  - Retención 5% sobre neto (subTotal)
+         *  - Retención 30% sobre ITBIS (totalTax)
+         *  - Total con impuestos (subTotal + totalTax)
+         *  - Pago final = (subTotal + totalTax) - ret5 - ret30
+         */
+        function recalcRetentionsAndFinal() {
+            var sub = parseFloat(($('.subTotal').text() || "0").replace(/,/g, '')) || 0; // Neto sin ITBIS
+            var tax = parseFloat(($('.totalTax').text() || "0").replace(/,/g, '')) || 0; // ITBIS total
+            var grossWithTax = sub + tax;
 
-    var ret5  = +(sub * 0.05).toFixed(2);   // 5% sobre neto
-    var ret30 = +(tax * 0.30).toFixed(2);   // 30% sobre ITBIS
+            var ret5 = +(sub * 0.05).toFixed(2); // 5% sobre neto
+            var ret30 = +(tax * 0.30).toFixed(2); // 30% sobre ITBIS
 
-    var finalPayable = +(grossWithTax - ret5 - ret30).toFixed(2);
+            if ($("input[name='has_retention']:checked").val()) {
+                var finalPayable = +(grossWithTax - ret5 - ret30).toFixed(2);
+                $('.retentionNet').text(ret5.toFixed(2));
+                $('.retencion5Input').val(ret5.toFixed(2));
+            } else {
+                var finalPayable = +(grossWithTax - ret30).toFixed(2);
+            }
 
-    // Pinta (si quieres ver el signo menos visualmente, antepón '–' en el text)
-    $('.retentionNet').text(ret5.toFixed(2));
-    $('.retentionIva').text(ret30.toFixed(2));
-    $('.totalAmount').text(grossWithTax.toFixed(2));
-    $('.finalPayable').text(finalPayable.toFixed(2));
+            // Pinta (si quieres ver el signo menos visualmente, antepón '–' en el text)
+            $('.retentionIva').text(ret30.toFixed(2));
+            $('.totalAmount').text(grossWithTax.toFixed(2));
+            $('.finalPayable').text(finalPayable.toFixed(2));
 
-    // Inputs ocultos para backend
-    $('.retencion5Input').val(ret5.toFixed(2));
-    $('.retencion30Input').val(ret30.toFixed(2));
-    $('.finalPayableInput').val(finalPayable.toFixed(2));
-}
+            // Inputs ocultos para backend
+            $('.retencion30Input').val(ret30.toFixed(2));
+            $('.finalPayableInput').val(finalPayable.toFixed(2));
+        }
 
-// Auto-dispara el cálculo cuando cambian los campos relevantes
-$(document).on('keyup change', '.quantity, .price, .discount, .accountAmount', function() {
-    recalcRetentionsAndFinal();
-});
+        // Auto-dispara el cálculo cuando cambian los campos relevantes
+        $(document).on('keyup change', '.quantity, .price, .discount, .accountAmount', function() {
+            // if ($("input[name='has_retention']:checked").val()) {
+                recalcRetentionsAndFinal();
+            // }
+        });
 
-// Cuando se cambia el item (producto/servicio)
-$(document).on('change', '.item', function() {
-    // Da un pequeño margen a que tu AJAX pueble impuestos/precio y luego recalcula
-    setTimeout(recalcRetentionsAndFinal, 50);
-});
+        $("input[name='has_retention']").on('change', function() {
+            if ($("input[name='has_retention']:checked").val()) {
+                recalcRetentionsAndFinal();
+            } else {
+                $('.retentionNet').text('0.00');
+            }
+        });
 
-// Después de añadir una fila del repeater
-$(document).on('click', '[data-repeater-create]', function() {
-    setTimeout(recalcRetentionsAndFinal, 100);
-});
+        // Cuando se cambia el item (producto/servicio)
+        $(document).on('change', '.item', function() {
+            // Da un pequeño margen a que tu AJAX pueble impuestos/precio y luego recalcula
+            // if ($("input[name='has_retention']:checked").val()) {
+                setTimeout(recalcRetentionsAndFinal, 50);
+            // }
+        });
 
-// Después de eliminar una fila del repeater
-$(document).on('click', '[data-repeater-delete]', function() {
-    setTimeout(recalcRetentionsAndFinal, 100);
-});
+        // Después de añadir una fila del repeater
+        $(document).on('click', '[data-repeater-create]', function() {
+            // if ($("input[name='has_retention']:checked").val()) {
+                setTimeout(recalcRetentionsAndFinal, 100);
+            // }
+        });
 
-// En el load inicial
-$(function () {
-    recalcRetentionsAndFinal();
-});
-</script>
+        // Después de eliminar una fila del repeater
+        $(document).on('click', '[data-repeater-delete]', function() {
+            // if ($("input[name='has_retention']:checked").val()) {
+                setTimeout(recalcRetentionsAndFinal, 100);
+            // }
+        });
 
+        // En el load inicial
+        $(function() {
+            // if ($("input[name='has_retention']:checked").val()) {
+                recalcRetentionsAndFinal();
+            // }
+        });
+    </script>
 @endpush
 @section('content')
     <div class="row">
-        {{ Form::open(['url' => 'bill', 'class' => 'w-100 needs-validation','novalidate']) }}
+        {{ Form::open(['url' => 'bill', 'class' => 'w-100 needs-validation', 'novalidate']) }}
         <div class="col-12">
             <input type="hidden" name="_token" id="token" value="{{ csrf_token() }}">
             <div class="card">
@@ -578,9 +682,10 @@ $(function () {
                         <div class="col-md-6">
                             <div class="form-group" id="vender-box">
                                 {{ Form::label('vender_id', __('Vendor'), ['class' => 'form-label']) }}<x-required></x-required>
-                                {{ Form::select('vender_id', $venders, $vendorId, ['class' => 'form-control select', 'id' => 'vender', 'data-url' => route('bill.vender'), 'required' => 'required']) }}
+                                {{ Form::select('vender_id', $venders, $vendorId, ['class' => 'form-control select2', 'id' => 'vender', 'data-url' => route('bill.vender'), 'required' => 'required']) }}
                                 <div class="text-xs mt-1">
-                                    {{ __('Create vendor here.') }} <a href="{{ route('vender.index') }}"><b>{{ __('Create vendor') }}</b></a>
+                                    {{ __('Create vendor here.') }} <a
+                                        href="{{ route('vender.index') }}"><b>{{ __('Create vendor') }}</b></a>
                                 </div>
                             </div>
                             <div id="vender_detail" class="d-none">
@@ -601,7 +706,7 @@ $(function () {
                                     <div class="form-group">
                                         {{ Form::label('due_date', __('Due Date'), ['class' => 'form-label']) }}<x-required></x-required>
                                         <div class="form-icon-user">
-                                            {{ Form::date('due_date', date('Y-m-d'), ['class' => 'form-control', 'required' => 'required']) }}
+                                            {{ Form::date('due_date', date('Y-m-d', strtotime('+1 months')), ['class' => 'form-control', 'required' => 'required']) }}
 
                                         </div>
                                     </div>
@@ -615,12 +720,21 @@ $(function () {
                                         </div>
                                     </div>
                                 </div>
-                        
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <div class="form-icon-user">
+                                            <label> {{ __('Has retention') }}</label>
+                                            {{ Form::checkbox('has_retention', 1, false) }}
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         {{ Form::label('order_number', __('Order Number'), ['class' => 'form-label']) }}
                                         <div class="form-icon-user">
-                                            {{ Form::text('order_number', '', ['class' => 'form-control', 'placeholder'=>__('Enter Order Number')]) }}
+                                            {{ Form::text('order_number', '', ['class' => 'form-control', 'placeholder' => __('Enter Order Number')]) }}
                                         </div>
                                     </div>
                                 </div>
@@ -671,7 +785,7 @@ $(function () {
                             <tbody class="ui-sortable" data-repeater-item>
                                 <tr>
                                     <td width="25%" class="form-group pt-0 flex-nowrap">
-                                        {{ Form::select('item', $product_services, '', ['class' => 'form-control item', 'data-url' => route('bill.product'), 'required' => 'required']) }}
+                                        {{ Form::select('item', $product_services, '', ['class' => 'form-control item select2', 'data-url' => route('bill.product'), 'required' => 'required']) }}
                                     </td>
                                     <td>
                                         <div class="form-group price-input input-group search-form flex-nowrap">
@@ -682,7 +796,7 @@ $(function () {
                                     </td>
                                     <td>
                                         <div class="form-group price-input input-group search-form flex-nowrap">
-                                            {{ Form::number('price', '', ['class' => 'form-control price', 'required' => 'required', 'placeholder' => __('Price'), 'required' => 'required']) }}
+                                            {{ Form::number('price', '', ['min' => '0.00', 'step' => '.01', 'class' => 'form-control price', 'required' => 'required', 'placeholder' => __('Price'), 'required' => 'required']) }}
                                             <span
                                                 class="input-group-text bg-transparent">{{ \Auth::user()->currencySymbol() }}</span>
                                         </div>
@@ -711,10 +825,12 @@ $(function () {
                                         0.00
                                     </td>
                                     <td>
-                                    <div class="action-btn ms-2 float-end mb-3"  data-repeater-delete>
-                                            <a href="#" class=" mx-3 btn btn-sm d-inline-flex align-items-center m-2 p-2 bg-danger"
-                                            data-bs-toggle="tooltip" data-bs-original-title="{{__('Delete')}}" title="{{__('Delete')}}">
-                                                <i class="ti ti-trash text-white" ></i>
+                                        <div class="action-btn ms-2 float-end mb-3" data-repeater-delete>
+                                            <a href="#"
+                                                class=" mx-3 btn btn-sm d-inline-flex align-items-center m-2 p-2 bg-danger"
+                                                data-bs-toggle="tooltip" data-bs-original-title="{{ __('Delete') }}"
+                                                title="{{ __('Delete') }}">
+                                                <i class="ti ti-trash text-white"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -728,7 +844,7 @@ $(function () {
                             </tr> --}}
                                 <tr>
                                     <td class="form-group">
-                                        <select name="chart_account_id" class="form-control">
+                                        <select name="chart_account_id" class="form-control select2">
                                             @foreach ($chartAccounts as $key => $chartAccount)
                                                 <option value="{{ $key }}" class="subAccount">{{ $chartAccount }}
                                                 </option>
@@ -759,83 +875,111 @@ $(function () {
                                     </td>
                                 </tr>
                                 <tr>
-                                <td width="25%" class="form-group pt-0 flex-nowrap">
-                                     <div class="form-group">
-                                        {{ Form::label('category_id', __('Category'), ['class' => 'form-label']) }}<x-required></x-required>
-                                        {{ Form::select('category_id', $category, null, ['class' => 'form-control select', 'required' => 'required']) }}
-                                    </div>
+                                    <td width="25%" class="form-group pt-0 flex-nowrap">
+                                        <div class="form-group">
+                                            {{ Form::label('category_id', __('Category'), ['class' => 'form-label']) }}<x-required></x-required>
+                                            {{ Form::select('category_id', $category, null, ['class' => 'form-control select2', 'required' => 'required']) }}
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
-                           <tfoot>
-    <tr>
-        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
-        <td><strong>{{ __('Sub Total') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
-        <td class="text-end subTotal">0.00</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
-        <td><strong>{{ __('Discount') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
-        <td class="text-end totalDiscount">0.00</td>
-        <td></td>
-    </tr>
-    <tr>
-        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
-        <td><strong>{{ __('Tax') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
-        <td class="text-end totalTax">0.00</td>
-        <td></td>
-    </tr>
+                            <tfoot>
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td></td>
+                                    <td><strong>{{ __('Sub Total') }} ({{ \Auth::user()->currencySymbol() }})</strong>
+                                    </td>
+                                    <td class="text-end subTotal">0.00</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td></td>
+                                    <td><strong>{{ __('Discount') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
+                                    <td class="text-end totalDiscount">0.00</td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td></td>
+                                    <td><strong>{{ __('Tax') }} ({{ \Auth::user()->currencySymbol() }})</strong></td>
+                                    <td class="text-end totalTax">0.00</td>
+                                    <td></td>
+                                </tr>
 
-    <!-- NUEVO: Retención 5% sobre neto (Sub Total) -->
-    <tr>
-        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
-        <td class="text-danger">
-            <strong>{{ __('Retención 5% (sobre neto)') }} ({{ \Auth::user()->currencySymbol() }})</strong>
-        </td>
-        <td class="text-end retentionNet">0.00</td>
-        <td></td>
-    </tr>
+                                <!-- NUEVO: Retención 5% sobre neto (Sub Total) -->
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td></td>
+                                    <td class="text-danger">
+                                        <strong>{{ __('Retención 5% (sobre neto)') }}
+                                            ({{ \Auth::user()->currencySymbol() }})</strong>
+                                    </td>
+                                    <td class="text-end retentionNet">0.00</td>
+                                    <td></td>
+                                </tr>
 
-    <!-- NUEVO: Retención 30% sobre impuestos (ITBIS) -->
-    <tr>
-        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td></td>
-        <td class="text-danger">
-            <strong>{{ __('Retención 30% (sobre ITBIS)') }} ({{ \Auth::user()->currencySymbol() }})</strong>
-        </td>
-        <td class="text-end retentionIva">0.00</td>
-        <td></td>
-    </tr>
+                                <!-- NUEVO: Retención 30% sobre impuestos (ITBIS) -->
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td></td>
+                                    <td class="text-danger">
+                                        <strong>{{ __('Retención 30% (sobre ITBIS)') }}
+                                            ({{ \Auth::user()->currencySymbol() }})</strong>
+                                    </td>
+                                    <td class="text-end retentionIva">0.00</td>
+                                    <td></td>
+                                </tr>
 
-    <!-- Total con impuestos (para referencia) -->
-    <tr>
-        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-        <td class="blue-text">
-            <strong>{{ __('Total con impuestos') }} ({{ \Auth::user()->currencySymbol() }})</strong>
-        </td>
-        <td class="blue-text text-end totalAmount">0.00</td>
-        <td></td>
-    </tr>
+                                <!-- Total con impuestos (para referencia) -->
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td class="blue-text">
+                                        <strong>{{ __('Total con impuestos') }}
+                                            ({{ \Auth::user()->currencySymbol() }})</strong>
+                                    </td>
+                                    <td class="blue-text text-end totalAmount">0.00</td>
+                                    <td></td>
+                                </tr>
 
-    <!-- NUEVO: Pago final al proveedor -->
-    <tr>
-        <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
-        <td class="blue-text">
-            <strong>{{ __('Pago final al proveedor') }} ({{ \Auth::user()->currencySymbol() }})</strong>
-        </td>
-        <td class="blue-text text-end finalPayable">0.00</td>
-        <td></td>
-    </tr>
+                                <!-- NUEVO: Pago final al proveedor -->
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td class="blue-text">
+                                        <strong>{{ __('Pago final al proveedor') }}
+                                            ({{ \Auth::user()->currencySymbol() }})</strong>
+                                    </td>
+                                    <td class="blue-text text-end finalPayable">0.00</td>
+                                    <td></td>
+                                </tr>
 
-    <!-- (Opcional) inputs ocultos para enviar a backend -->
-    <tr class="d-none">
-        <td colspan="7">
-            <input type="hidden" name="retencion_5" class="retencion5Input" value="0">
-            <input type="hidden" name="retencion_30_itbis" class="retencion30Input" value="0">
-            <input type="hidden" name="pago_final_proveedor" class="finalPayableInput" value="0">
-        </td>
-    </tr>
-</tfoot>
+                                <!-- (Opcional) inputs ocultos para enviar a backend -->
+                                <tr class="d-none">
+                                    <td colspan="7">
+                                        <input type="hidden" name="retencion_5" class="retencion5Input" value="0">
+                                        <input type="hidden" name="retencion_30_itbis" class="retencion30Input"
+                                            value="0">
+                                        <input type="hidden" name="pago_final_proveedor" class="finalPayableInput"
+                                            value="0">
+                                    </td>
+                                </tr>
+                            </tfoot>
 
                         </table>
                     </div>

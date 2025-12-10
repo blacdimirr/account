@@ -42,15 +42,17 @@ class CustomField extends Model
             $RecordId = $obj->id;
             foreach($data as $fieldId => $value)
             {
-                \DB::insert(
-                    'insert into custom_field_values (`record_id`, `field_id`,`value`,`created_at`,`updated_at`) values (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`),`updated_at` = VALUES(`updated_at`) ', [
-                                                                                                                                                                                                                                   $RecordId,
-                                                                                                                                                                                                                                   $fieldId,
-                                                                                                                                                                                                                                   $value,
-                                                                                                                                                                                                                                   date('Y-m-d H:i:s'),
-                                                                                                                                                                                                                                   date('Y-m-d H:i:s'),
-                                                                                                                                                                                                                               ]
-                );
+                if (!empty($value)){
+                    \DB::insert(
+                        'insert into custom_field_values (`record_id`, `field_id`,`value`,`created_at`,`updated_at`) values (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`),`updated_at` = VALUES(`updated_at`) ', [
+                                                                                                                                                                                                                                    $RecordId,
+                                                                                                                                                                                                                                    $fieldId,
+                                                                                                                                                                                                                                    $value,
+                                                                                                                                                                                                                                    date('Y-m-d H:i:s'),
+                                                                                                                                                                                                                                    date('Y-m-d H:i:s'),
+                                                                                                                                                                                                                                ]
+                    );
+                }
             }
         }
     }

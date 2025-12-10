@@ -1614,5 +1614,6 @@
     "YYYY-MM-DD": "YYYY-MM-DD",
     "Zip": "Zip",
     "Zip Code": "Zip Code",
-    "Zip\/Post Code": "Zip\/Post Code"
+    "Zip\/Post Code": "Zip\/Post Code",
+    "Has retention": "Has retention"
 }

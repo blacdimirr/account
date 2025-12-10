@@ -1614,5 +1614,6 @@
   "YYYY-MM-DD": "Yyyy-mm-dd",
   "Zip": "Cremallera",
   "Zip Code": "Código postal",
-  "Zip/Post Code": "Código postal/postal"
+  "Zip/Post Code": "Código postal/postal",
+  "Has retention": "LLeva retención"
 }

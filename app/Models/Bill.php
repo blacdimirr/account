@@ -10,6 +10,7 @@ class Bill extends Model
         'vender_id',
         'currency',
         'bill_date',
+        'has_retention',
         'due_date',
         'bill_id',
         'order_number',
@@ -39,7 +40,8 @@ class Bill extends Model
 
     public function accounts()
     {
-        return $this->hasMany('App\Models\BillAccount', 'ref_id', 'id');
+        // return $this->hasMany('App\Models\BillAccount', 'ref_id', 'id');
+		return $this->hasMany('App\Models\BillAccount', 'ref_id', 'id')->select('chart_account_id','price','description','type','ref_id')->groupBy('chart_account_id','price','description','type','ref_id'); //->orderBy('id','desc');
     }
 
     public function getSubTotal()

@@ -509,19 +509,19 @@
                                                 <td>
                                                     @if ($invoice->status == 0)
                                                         <span
-                                                            class="p-2 px-3 fix_badges badge bg-secondary">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                                            class="p-2 px-3 fix_badges badge bg-secondary">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                                     @elseif($invoice->status == 1)
                                                         <span
-                                                            class="p-2 px-3 fix_badges badge bg-warning">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                                            class="p-2 px-3 fix_badges badge bg-warning">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                                     @elseif($invoice->status == 2)
                                                         <span
-                                                            class="p-2 px-3 fix_badges badge bg-danger">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                                            class="p-2 px-3 fix_badges badge bg-danger">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                                     @elseif($invoice->status == 3)
                                                         <span
-                                                            class="p-2 px-3 fix_badges badge bg-info">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                                            class="p-2 px-3 fix_badges badge bg-info">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                                     @elseif($invoice->status == 4)
                                                         <span
-                                                            class="p-2 px-3 fix_badges badge bg-success">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                                            class="p-2 px-3 fix_badges badge bg-success">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                                     @endif
                                                 </td>
                                             </tr>

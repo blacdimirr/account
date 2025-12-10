@@ -344,15 +344,15 @@
                                     <td>{{\Auth::user()->priceFormat($invoice->getDue())  }}</td>
                                     <td>
                                         @if($invoice->status == 0)
-                                            <span class="badge bg-primary p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                            <span class="badge bg-primary p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                         @elseif($invoice->status == 1)
-                                            <span class="badge bg-warning p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                            <span class="badge bg-warning p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                         @elseif($invoice->status == 2)
-                                            <span class="badge bg-danger p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                            <span class="badge bg-danger p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                         @elseif($invoice->status == 3)
-                                            <span class="badge bg-info p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                            <span class="badge bg-info p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                         @elseif($invoice->status == 4)
-                                            <span class="badge bg-success p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($bill->status)) }}</span>
+                                            <span class="badge bg-success p-2 px-3 fix_badge">{{ __(\App\Models\Status::getNameById($invoice->status)) }}</span>
                                         @endif
                                     </td>
                                     @if(Gate::check('edit invoice') || Gate::check('delete invoice') || Gate::check('show invoice'))

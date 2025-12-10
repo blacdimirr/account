@@ -147,16 +147,18 @@ class BillController extends Controller
             $bill->bill_id   = $this->billNumber();
             $bill->vender_id = $request->vender_id;
             $bill->bill_date      = $request->bill_date;
+            $bill->has_retention  = $request->has_retention?$request->has_retention:0;
             $bill->status         = 0;
             $bill->due_date       = $request->due_date;
 
             $bill->order_number   = !empty($request->order_number) ? $request->order_number : 0;
             $bill->discount_apply = isset($request->discount_apply) ? 1 : 0;
             $bill->created_by     = \Auth::user()->creatorId();
-
-            $bill->save();
+            $bill->save();            
             Utility::starting_number($bill->bill_id + 1, 'bill');
-            CustomField::saveData($bill, $request->customField);
+            if (!empty($request->customField)){
+                CustomField::saveData($bill, $request->customField);
+            }
             $products = $request->items;
 
             $total_amount = 0;
@@ -203,7 +205,8 @@ class BillController extends Controller
                     if ($itemCategory && !empty($itemCategory->chart_account_id)) {
                         $ba                    = new \App\Models\BillAccount();
                         $ba->chart_account_id  = $itemCategory->chart_account_id;
-                        $ba->price             = $lineTotal; // monto de la línea (base - desc + impuesto)
+						$ba->price             = $itemCategory->amount;
+                        // $ba->price             = $lineTotal; // monto de la línea (base - desc + impuesto)
                         $ba->description       = $billProduct->description
                             ?: ('Línea de factura - ProdID: ' . $billProduct->product_id);
                         $ba->type              = 'Bill Item Category'; // etiqueta clara para auditoría
@@ -219,7 +222,7 @@ class BillController extends Controller
                     // Si te pasan un "amount" manual, úsalo; si no, usa el lineTotal
                     $ba2->price             = isset($products[$i]['amount']) && is_numeric($products[$i]['amount'])
                         ? (float) $products[$i]['amount']
-                        : $lineTotal;
+                        : 0;
                     $ba2->description       = $billProduct->description
                         ?: ('Asiento manual por línea - ProdID: ' . $billProduct->product_id);
                     $ba2->type              = 'Bill Item Manual';
@@ -245,7 +248,8 @@ class BillController extends Controller
                 $chart_account = ChartOfAccount::find($billaccount->chart_account_id);
                 $billAccount                    = new BillAccount();
                 $billAccount->chart_account_id  = $chart_account['id'];
-                $billAccount->price             = $total_amount;
+                $billAccount->price             = $products[$i]['amount'];
+				// $billAccount->price             = $total_amount;
                 $billAccount->description       = $request->description;
                 $billAccount->type              = 'Bill Category';
                 $billAccount->ref_id            = $bill->id;
@@ -351,6 +355,7 @@ class BillController extends Controller
 
     public function edit($ids)
     {
+        
         if (\Auth::user()->can('edit bill')) {
             $id       = Crypt::decrypt($ids);
             $bill     = Bill::find($id);
@@ -359,6 +364,7 @@ class BillController extends Controller
 
             $bill_number      = \Auth::user()->billNumberFormat($bill->bill_id);
             $venders          = Vender::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
+            $has_retention    = $bill->has_retention;
 
             $estatus = Status::getAllAsArray();
 
@@ -401,7 +407,7 @@ class BillController extends Controller
                         $row['account_id']       = $accounts[$k]['id'];
                         $row['amount']           = $accounts[$k]['price'];
                     }
-
+                    
                     $items[] = $row;
                 }
             } else {
@@ -416,7 +422,7 @@ class BillController extends Controller
                 }
             }
 
-            return view('bill.edit', compact('venders', 'product_services', 'bill', 'bill_number', 'category', 'customFields', 'chartAccounts', 'items', 'subAccounts', 'estatus'));
+            return view('bill.edit', compact('venders', 'product_services', 'bill', 'bill_number', 'category', 'customFields', 'chartAccounts', 'items', 'subAccounts', 'estatus','has_retention'));
         } else {
             return response()->json(['error' => __('Permission denied.')], 401);
         }
@@ -439,23 +445,40 @@ class BillController extends Controller
                 'bill_date' => 'required|date',
                 'due_date'  => 'required|date',
                 'items'     => 'required|array|min:1',
+            ],
+            [
+                'required' => 'El :attribute campo es requerido'
+            ],
+            [
+                'vender' => 'proveedor',
+                'bill_date' => 'fecha de factura',
+                'due_date' => 'fecha de vencimiento',
+                'items' => 'producto',
             ]
         );
 
         if ($validator->fails()) {
-            return redirect()->route('bill.index')->with('error', $validator->getMessageBag()->first());
-        }
+            
+            $messages = $validator->getMessageBag();
+
+            return redirect()->back()->with('error', $messages->first());
+                
+            // return redirect()->route('bill.index')->with('error', $validator->getMessageBag()->first());
+        }        
 
         // 1) Actualiza solo datos "cabezales" (NO status)
         $bill->vender_id    = $request->vender_id;
         $bill->bill_date    = $request->bill_date;
         $bill->due_date     = $request->due_date;
         $bill->order_number = $request->order_number;
-        // $bill->status    = $request->estatus_id; // ← INTENCIONALMENTE NO SE TOCA
+        $bill->has_retention = $request->has_retention?$request->has_retention:0;
+        $bill->status    = $request->estatus_id; // ← INTENCIONALMENTE NO SE TOCA
         $bill->save();
 
         // Campos personalizados
-        CustomField::saveData($bill, $request->customField);
+        if (!empty($request->customField)){
+            CustomField::saveData($bill, $request->customField);
+        }
 
         $products = $request->items;
         $inventoryChanged = false;     // si hay cambios reales (no solo categoría)
@@ -464,16 +487,16 @@ class BillController extends Controller
         foreach ($products as $row) {
             $lineId = isset($row['id']) ? (int)$row['id'] : 0;
             $existing = $lineId > 0 ? BillProduct::find($lineId) : null;
-
+            
             // Valores nuevos propuestos
-            $newProductId = isset($row['item']) ? (int)$row['item'] : ($existing?->product_id);
+            $newProductId = isset($row['items']) ? (int)$row['items'] : ($existing?->product_id);
             $newQty       = isset($row['quantity']) ? (float)$row['quantity'] : ($existing?->quantity ?? 0);
             $newPrice     = isset($row['price']) ? (float)$row['price'] : ($existing?->price ?? 0);
             $newTax       = $row['tax'] ?? ($existing?->tax);
             $newDiscount  = isset($row['discount']) ? (float)$row['discount'] : ($existing?->discount ?? 0);
             $newDesc      = $row['description'] ?? ($existing?->description);
-            $newCatId     = $row['category_id'] ?? ($existing?->category_id);
-
+            $newCatId     = $row['category_id'] ?? ($existing?->category_id);            
+            
             if (is_null($existing)) {
                 // 2) Línea nueva → sí mueve inventario (comportamiento normal)
                 $bp                 = new BillProduct();
@@ -542,6 +565,23 @@ class BillController extends Controller
             }
 
             // (NO movimientos contables en EDIT)
+
+            if (!empty($row['chart_account_id'])) {
+				$ba_delete                    = new \App\Models\BillAccount;
+                $ba_delete->where('ref_id', $bill->id)->delete();
+				
+                $ba2                    = new \App\Models\BillAccount();
+                $ba2->chart_account_id  = $row['chart_account_id'];
+                // Si te pasan un "amount" manual, úsalo; si no, usa el lineTotal
+                $ba2->price             = isset($row['amount']) && is_numeric($row['amount'])
+                    ? (float) $row['amount']
+                    : 0;
+                $ba2->description       = $newDesc
+                    ?: ('Asiento manual por línea - ProdID: ' . $newProductId);
+                $ba2->type              = 'Bill Item Manual';
+                $ba2->ref_id            = $bill->id;
+                $ba2->save();
+            }
         }
 
         // 5) Si hubo cambios reales, reconstruye el StockReport de la factura UNA sola vez
