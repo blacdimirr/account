@@ -518,6 +518,7 @@ $SITE_RTL = !empty($setting['SITE_RTL']) ? $setting['SITE_RTL'] : 'off';
                 Gate::check('bill report') ||
                 Gate::check('invoice report') ||
                 Gate::check('manage transaction') ||
+                Gate::check('dgii report') ||
                 Gate::check('statement report'))
                 <li
                     class="dash-item dash-hasmenu {{ (Request::segment(1) == 'report' || Request::segment(1) == 'transaction') && Request::segment(2) != 'ledger' && Request::segment(2) != 'balance-sheet' && Request::segment(2) != 'trial-balance' ? ' active dash-trigger' : '' }}">
@@ -570,6 +571,13 @@ $SITE_RTL = !empty($setting['SITE_RTL']) ? $setting['SITE_RTL'] : 'off';
                                 href="{{ route('report.tax.summary') }}">{{ __('Tax Summary') }}</a>
                         </li>
                         @endcan
+                        @can('dgii report')
+                        <li
+                            class="dash-item {{ Request::route()->getName() == 'report.dgii' ? ' active' : '' }}">
+                            <a class="dash-link"
+                                href="{{ route('report.dgii') }}">{{ __('DGII 606/607/608') }}</a>
+                        </li>
+                        @endcan
                         @can('loss & profit report')
                         <li
                             class="dash-item {{ Request::route()->getName() == 'report.monthly.cashflow' ? ' active' : '' }}">
@@ -611,16 +619,18 @@ $SITE_RTL = !empty($setting['SITE_RTL']) ? $setting['SITE_RTL'] : 'off';
                 Gate::check('manage constant payment method') ||
                 Gate::check('manage constant custom field') ||
                 Gate::check('manage constant contract type') ||
-                Gate::check('manage constant chart of account'))
+                Gate::check('manage constant chart of account') ||
+                Gate::check('manage ncf type') ||
+                Gate::check('manage ncf sequence'))
                 <li
-                    class="dash-item dash-hasmenu {{ Request::segment(1) == 'taxes' || Request::segment(1) == 'product-category' || Request::segment(1) == 'product-unit' || Request::segment(1) == 'payment-method' || Request::segment(1) == 'custom-field' || Request::segment(1) == 'chart-of-account-type' ? ' active dash-trigger' : '' }} ">
+                    class="dash-item dash-hasmenu {{ Request::segment(1) == 'taxes' || Request::segment(1) == 'product-category' || Request::segment(1) == 'product-unit' || Request::segment(1) == 'payment-method' || Request::segment(1) == 'custom-field' || Request::segment(1) == 'chart-of-account-type' || Request::segment(1) == 'ncf-types' || Request::segment(1) == 'ncf-sequences' ? ' active dash-trigger' : '' }} ">
                     <a href="#!" class="dash-link"><span class="dash-micon"><i
                                 class="ti ti-chart-arcs"></i></span><span
                             class="dash-mtext">{{ __('Constant') }}</span>
                         <span class="dash-arrow"><i data-feather="chevron-right"></i></span>
                     </a>
                     <ul
-                        class="dash-submenu {{ Request::segment(1) == 'taxes' || Request::segment(1) == 'product-category' || Request::segment(1) == 'product-unit' || Request::segment(1) == 'payment-method' || Request::segment(1) == 'custom-field' || Request::segment(1) == 'chart-of-account-type' ? 'show' : '' }}">
+                        class="dash-submenu {{ Request::segment(1) == 'taxes' || Request::segment(1) == 'product-category' || Request::segment(1) == 'product-unit' || Request::segment(1) == 'payment-method' || Request::segment(1) == 'custom-field' || Request::segment(1) == 'chart-of-account-type' || Request::segment(1) == 'ncf-types' || Request::segment(1) == 'ncf-sequences' ? 'show' : '' }}">
                         @can('manage constant tax')
                         <li
                             class="dash-item {{ Request::route()->getName() == 'taxes.index' ? ' active' : '' }}">
@@ -653,6 +663,16 @@ $SITE_RTL = !empty($setting['SITE_RTL']) ? $setting['SITE_RTL'] : 'off';
                             class="dash-item {{ Request::route()->getName() == 'contractType.index' ? 'active' : '' }}">
                             <a class="dash-link"
                                 href="{{ route('contractType.index') }}">{{ __('Contract Type') }}</a>
+                        </li>
+                        @endcan
+                        @can('manage ncf type')
+                        <li class="dash-item {{ Request::segment(1) == 'ncf-types' ? 'active' : '' }}">
+                            <a class="dash-link" href="{{ route('ncf-types.index') }}">{{ __('NCF Types') }}</a>
+                        </li>
+                        @endcan
+                        @can('manage ncf sequence')
+                        <li class="dash-item {{ Request::segment(1) == 'ncf-sequences' ? 'active' : '' }}">
+                            <a class="dash-link" href="{{ route('ncf-sequences.index') }}">{{ __('NCF Sequences') }}</a>
                         </li>
                         @endcan
                     </ul>

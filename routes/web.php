@@ -38,6 +38,8 @@ use App\Http\Controllers\ChartOfAccountController;
 use App\Http\Controllers\PaytmPaymentController;
 use App\Http\Controllers\RevenueController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\NcfSequenceController;
+use App\Http\Controllers\NcfTypeController;
 use App\Http\Controllers\JournalEntryController;
 use App\Http\Controllers\ToyyibpayController;
 use App\Http\Controllers\PayFastController;
@@ -626,6 +628,9 @@ Route::resource('product-category', ProductServiceCategoryController::class)->mi
 Route::post('product-category/getaccount', [ProductServiceCategoryController::class, 'getAccount'])->name('productServiceCategory.getaccount')->middleware(['auth', 'XSS', 'revalidate']);
 
 Route::resource('taxes', TaxController::class)->middleware(['auth', 'XSS', 'revalidate']);
+
+Route::resource('ncf-types', NcfTypeController::class)->middleware(['auth', 'XSS', 'revalidate']);
+Route::resource('ncf-sequences', NcfSequenceController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
 Route::resource('product-unit', ProductServiceUnitController::class)->middleware(['auth', 'XSS', 'revalidate']);
 
