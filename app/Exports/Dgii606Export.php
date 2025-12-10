@@ -10,6 +10,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class Dgii606Export implements FromCollection, WithHeadings
 {
+    public function __construct(private int $month, private int $year, private int $creatorId)
+    {
     private int $month;
     private int $year;
     private int $creatorId;
@@ -23,6 +25,7 @@ class Dgii606Export implements FromCollection, WithHeadings
 
     public function collection(): Collection
     {
+        $bills = Bill::with('vender', 'ncfType', 'payments', 'items')
         $bills = Bill::with(['vender', 'ncfType', 'payments', 'items'])
             ->where('created_by', $this->creatorId)
             ->whereYear('bill_date', $this->year)
@@ -35,6 +38,7 @@ class Dgii606Export implements FromCollection, WithHeadings
                 ->where(function ($query) use ($bill) {
                     $query->where(function ($query) use ($bill) {
                         $query->where('document_type', 'bill')
+                            ->where('document_id', $bill->id);
                               ->where('document_id', $bill->id);
                     });
 
@@ -42,6 +46,7 @@ class Dgii606Export implements FromCollection, WithHeadings
                     if ($paymentIds->isNotEmpty()) {
                         $query->orWhere(function ($query) use ($paymentIds) {
                             $query->where('document_type', 'bill_payment')
+                                ->whereIn('document_id', $paymentIds);
                                   ->whereIn('document_id', $paymentIds);
                         });
                     }
@@ -84,4 +89,5 @@ class Dgii606Export implements FromCollection, WithHeadings
             'ISR Retenido',
         ];
     }
+}
 }

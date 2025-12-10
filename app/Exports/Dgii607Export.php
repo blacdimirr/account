@@ -9,6 +9,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class Dgii607Export implements FromCollection, WithHeadings
 {
+    public function __construct(private int $month, private int $year, private int $creatorId)
+    {
     private int $month;
     private int $year;
     private int $creatorId;
@@ -22,6 +24,7 @@ class Dgii607Export implements FromCollection, WithHeadings
 
     public function collection(): Collection
     {
+        $invoices = Invoice::with('customer', 'ncfType', 'items')
         $invoices = Invoice::with(['customer', 'ncfType', 'items'])
             ->where('created_by', $this->creatorId)
             ->whereYear('issue_date', $this->year)
@@ -61,4 +64,5 @@ class Dgii607Export implements FromCollection, WithHeadings
             'ITBIS Facturado',
         ];
     }
+}
 }

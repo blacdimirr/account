@@ -13,6 +13,7 @@ class DgiiReportController extends Controller
 {
     public function index()
     {
+        if (! Auth::user()->can('dgii report')) {
         if (! Auth::user()->can('tax report')) {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
@@ -40,6 +41,7 @@ class DgiiReportController extends Controller
 
     public function export(Request $request)
     {
+        if (! Auth::user()->can('dgii report')) {
         if (! Auth::user()->can('tax report')) {
             return redirect()->back()->with('error', __('Permission denied.'));
         }
@@ -57,6 +59,7 @@ class DgiiReportController extends Controller
         return match ($request->format) {
             '606' => Excel::download(new Dgii606Export($month, $year, $creatorId), "DGII-606-{$year}-{$month}.xlsx"),
             '607' => Excel::download(new Dgii607Export($month, $year, $creatorId), "DGII-607-{$year}-{$month}.xlsx"),
+            default => Excel::download(new Dgii608Export($month, $year, $creatorId), "DGII-608-{$year}-{$month}.xlsx"),
             default => Excel::download(new Dgii608Export($month, $year, $creatorId), "DGII-608-{$year}-{$month}.xlsx") };
 
         return match ($request->format) {
