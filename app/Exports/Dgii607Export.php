@@ -9,18 +9,35 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class Dgii607Export implements FromCollection, WithHeadings
 {
+    public function __construct(private int $month, private int $year, private int $creatorId)
     public function __construct(private int $month, private int $year)
     {
     }
 
     public function collection(): Collection
     {
+        $invoices = Invoice::with('customer', 'ncfType', 'items')
+            ->where('created_by', $this->creatorId)
         $invoices = Invoice::with('customer', 'ncfType')
             ->whereYear('issue_date', $this->year)
             ->whereMonth('issue_date', $this->month)
             ->get();
 
         return $invoices->map(function (Invoice $invoice) {
+            $taxNumber = optional($invoice->customer)->tax_number;
+            $idType = strlen((string) $taxNumber) === 11 ? 'Cedula' : 'RNC';
+            $baseAmount = $invoice->getSubTotal() - $invoice->getTotalDiscount();
+
+            return [
+                $invoice->issue_date,
+                optional($invoice->customer)->name,
+                $taxNumber,
+                $idType,
+                optional($invoice->ncfType)->code ?? '',
+                $invoice->ncf_number ?? '',
+                round($baseAmount, 2),
+                $invoice->getTotal(),
+                round($invoice->getTotalTax(), 2),
             return [
                 $invoice->issue_date,
                 optional($invoice->customer)->name,
@@ -39,6 +56,10 @@ class Dgii607Export implements FromCollection, WithHeadings
             'Fecha',
             'Cliente',
             'Identificacion',
+            'Tipo Identificacion',
+            'Tipo NCF',
+            'NCF',
+            'Base Imponible',
             'Tipo NCF',
             'NCF',
             'Monto Facturado',

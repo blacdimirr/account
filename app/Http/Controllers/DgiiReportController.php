@@ -52,6 +52,12 @@ class DgiiReportController extends Controller
 
         $month = (int) $request->month;
         $year = (int) $request->year;
+        $creatorId = Auth::user()->creatorId();
+
+        return match ($request->format) {
+            '606' => Excel::download(new Dgii606Export($month, $year, $creatorId), "DGII-606-{$year}-{$month}.xlsx"),
+            '607' => Excel::download(new Dgii607Export($month, $year, $creatorId), "DGII-607-{$year}-{$month}.xlsx"),
+            default => Excel::download(new Dgii608Export($month, $year, $creatorId), "DGII-608-{$year}-{$month}.xlsx"),
 
         return match ($request->format) {
             '606' => Excel::download(new Dgii606Export($month, $year), "DGII-606-{$year}-{$month}.xlsx"),
