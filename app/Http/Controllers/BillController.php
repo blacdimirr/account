@@ -31,7 +31,9 @@ use App\Models\DebitNote;
 use App\Models\Status;
 use App\Models\TransactionLines;
 use App\Models\NcfSequence;
+use App\Models\RetentionRecord;
 use App\Services\NcfService;
+use App\Services\RetentionService;
 use Exception;
 use Carbon\Carbon;
 use CoinGate\Exception\Api\BadRequest;
@@ -318,6 +320,8 @@ class BillController extends Controller
                     return redirect()->back()->with('error', __('Webhook call failed.'));
                 }
             }
+
+            app(RetentionService::class)->storeBillRetentions($bill);
 
             return redirect()->route('bill.index', $bill->id)->with('success', __('Bill successfully created.'));
         } else {
@@ -636,6 +640,8 @@ class BillController extends Controller
         //    (eliminar cualquier lógica previa relacionada)
         // TransactionLines::where(...)->delete(); // ← ya NO
         // (NO Utility::addTransactionLines)
+        RetentionRecord::where('document_type', 'bill')->where('document_id', $bill->id)->delete();
+        app(RetentionService::class)->storeBillRetentions($bill);
 
         return redirect()->route('bill.index')->with('success', __('Bill successfully updated.'));
     }
@@ -1002,6 +1008,8 @@ class BillController extends Controller
             }
             $billPayment->save();
 
+            app(RetentionService::class)->storePaymentRetentions($billPayment);
+
             $bill  = Bill::where('id', $bill_id)->first();
             $due   = $bill->getDue();
             $total = $bill->getTotal();
@@ -1079,6 +1087,8 @@ class BillController extends Controller
         if (\Auth::user()->can('delete payment bill')) {
             $payment = BillPayment::find($payment_id);
             BillPayment::where('id', '=', $payment_id)->delete();
+
+            RetentionRecord::where('document_type', 'bill_payment')->where('document_id', $payment_id)->delete();
 
             $bill = Bill::where('id', $bill_id)->first();
 
