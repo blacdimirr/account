@@ -15,6 +15,11 @@ class CreditNote extends Model
 
     public function customer()
     {
-        return $this->hasOne('App\Models\Customer', 'customer_id', 'customer');
+        return $this->belongsTo(Customer::class, 'customer', 'id');
+    }
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class, 'invoice', 'id');
     }
 }
