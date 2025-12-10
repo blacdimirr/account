@@ -9,16 +9,21 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class Dgii607Export implements FromCollection, WithHeadings
 {
-    public function __construct(private int $month, private int $year, private int $creatorId)
-    public function __construct(private int $month, private int $year)
+    private int $month;
+    private int $year;
+    private int $creatorId;
+
+    public function __construct(int $month, int $year, int $creatorId)
     {
+        $this->month = $month;
+        $this->year = $year;
+        $this->creatorId = $creatorId;
     }
 
     public function collection(): Collection
     {
-        $invoices = Invoice::with('customer', 'ncfType', 'items')
+        $invoices = Invoice::with(['customer', 'ncfType', 'items'])
             ->where('created_by', $this->creatorId)
-        $invoices = Invoice::with('customer', 'ncfType')
             ->whereYear('issue_date', $this->year)
             ->whereMonth('issue_date', $this->month)
             ->get();
@@ -38,14 +43,6 @@ class Dgii607Export implements FromCollection, WithHeadings
                 round($baseAmount, 2),
                 $invoice->getTotal(),
                 round($invoice->getTotalTax(), 2),
-            return [
-                $invoice->issue_date,
-                optional($invoice->customer)->name,
-                optional($invoice->customer)->contact,
-                optional($invoice->ncfType)->code ?? '',
-                $invoice->ncf_number ?? '',
-                $invoice->getTotal(),
-                $invoice->getTotalTax(),
             ];
         });
     }
@@ -60,8 +57,6 @@ class Dgii607Export implements FromCollection, WithHeadings
             'Tipo NCF',
             'NCF',
             'Base Imponible',
-            'Tipo NCF',
-            'NCF',
             'Monto Facturado',
             'ITBIS Facturado',
         ];

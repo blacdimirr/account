@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Tests\Feature;
 
-use App\Models\NcfSequence;
-use App\Models\NcfType;
+use App\Http\Controllers\NcfSequenceController;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Tests\TestCase;
 
-class NcfSequenceController extends Controller
+class NcfSequenceControllerTest extends TestCase
 
 {
     use RefreshDatabase;
