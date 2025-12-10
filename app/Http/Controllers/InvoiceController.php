@@ -27,7 +27,12 @@ use App\Exports\InvoiceExport;
 use App\Models\CreditNote;
 use App\Models\TransactionLines;
 use App\Models\Status;
+use App\Models\NcfSequence;
+use App\Services\NcfService;
+use Carbon\Carbon;
 use Exception;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class InvoiceController extends Controller
 {
@@ -87,7 +92,13 @@ class InvoiceController extends Controller
             $product_services = ProductService::where('created_by', \Auth::user()->creatorId())->get()->pluck('name', 'id');
             $product_services->prepend('--', '');
 
-            return view('invoice.create', compact('customers', 'invoice_number', 'product_services', 'category', 'customFields', 'customerId'));
+            $ncfSequences = NcfSequence::with('ncfType')
+                ->active()
+                ->where('created_by', \Auth::user()->creatorId())
+                ->get()
+                ->pluck('display_name', 'id');
+
+            return view('invoice.create', compact('customers', 'invoice_number', 'product_services', 'category', 'customFields', 'customerId', 'ncfSequences'));
         } else {
             return response()->json(['error' => __('Permission denied.')], 401);
         }
@@ -139,6 +150,12 @@ class InvoiceController extends Controller
                     'due_date' => 'required',
                     'category_id' => 'required',
                     'items' => 'required',
+                    'ncf_sequence_id' => [
+                        'nullable',
+                        Rule::exists('ncf_sequences', 'id')->where(function ($query) {
+                            return $query->where('created_by', \Auth::user()->creatorId());
+                        }),
+                    ],
 
                 ]
             );
@@ -159,6 +176,24 @@ class InvoiceController extends Controller
             $invoice->ref_number     = $request->ref_number;
             $invoice->discount_apply = isset($request->discount_apply) ? 1 : 0;
             $invoice->created_by     = \Auth::user()->creatorId();
+
+            if (!empty($request->ncf_sequence_id)) {
+                $sequence = NcfSequence::with('ncfType')
+                    ->where('created_by', \Auth::user()->creatorId())
+                    ->find($request->ncf_sequence_id);
+
+                if (empty($sequence)) {
+                    return redirect()->back()->withInput()->with('error', __('Unable to find the selected NCF series.'));
+                }
+
+                try {
+                    $invoice->ncf_sequence_id = $sequence->id;
+                    $invoice->ncf_type_id = $sequence->ncf_type_id;
+                    $invoice->ncf_number = app(NcfService::class)->reserveNextNumber($sequence, Carbon::parse($request->issue_date));
+                } catch (ValidationException $e) {
+                    return redirect()->back()->withInput()->with('error', collect($e->errors())->flatten()->first());
+                }
+            }
 
             $invoice->save();
             Utility::starting_number($invoice->invoice_id + 1, 'invoice');
