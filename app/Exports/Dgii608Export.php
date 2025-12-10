@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 class Dgii608Export implements FromCollection, WithHeadings
 {
     public function __construct(private int $month, private int $year, private int $creatorId)
+    public function __construct(private int $month, private int $year)
     {
     }
 
@@ -33,6 +34,16 @@ class Dgii608Export implements FromCollection, WithHeadings
                 $note->amount,
                 optional($customer)->name,
                 optional($customer)->tax_number,
+        $notes = CreditNote::whereYear('date', $this->year)
+            ->whereMonth('date', $this->month)
+            ->get();
+
+        return $notes->map(function (CreditNote $note) {
+            return [
+                $note->date,
+                $note->invoice,
+                $note->amount,
+                $note->customer,
             ];
         });
     }
@@ -45,6 +56,9 @@ class Dgii608Export implements FromCollection, WithHeadings
             'Monto Nota',
             'Cliente',
             'Identificacion Cliente',
+            'Factura relacionada',
+            'Monto Nota',
+            'Cliente',
         ];
     }
 }
