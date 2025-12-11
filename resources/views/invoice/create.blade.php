@@ -452,6 +452,13 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
+                                        {{ Form::label('ncf_sequence_id', __('NCF Series'),['class'=>'form-label']) }}
+                                        {{ Form::select('ncf_sequence_id', $ncfSequences ?? [], null, ['class' => 'form-control select','placeholder' => __('Select NCF series')]) }}
+                                        <div class="text-xs mt-1">{{ __('Optional: will validate availability and assign the next NCF number.') }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         {{ Form::label('category_id', __('Category'),['class'=>'form-label']) }}<x-required></x-required>
                                         {{ Form::select('category_id', $category,null, array('class' => 'form-control select','required'=>'required')) }}
                                         <div class="text-xs mt-1">
