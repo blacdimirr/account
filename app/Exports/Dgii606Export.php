@@ -12,11 +12,21 @@ class Dgii606Export implements FromCollection, WithHeadings
 {
     public function __construct(private int $month, private int $year, private int $creatorId)
     {
+    private int $month;
+    private int $year;
+    private int $creatorId;
+
+    public function __construct(int $month, int $year, int $creatorId)
+    {
+        $this->month = $month;
+        $this->year = $year;
+        $this->creatorId = $creatorId;
     }
 
     public function collection(): Collection
     {
         $bills = Bill::with('vender', 'ncfType', 'payments', 'items')
+        $bills = Bill::with(['vender', 'ncfType', 'payments', 'items'])
             ->where('created_by', $this->creatorId)
             ->whereYear('bill_date', $this->year)
             ->whereMonth('bill_date', $this->month)
@@ -29,6 +39,7 @@ class Dgii606Export implements FromCollection, WithHeadings
                     $query->where(function ($query) use ($bill) {
                         $query->where('document_type', 'bill')
                             ->where('document_id', $bill->id);
+                              ->where('document_id', $bill->id);
                     });
 
                     $paymentIds = $bill->payments()->pluck('id');
@@ -36,6 +47,7 @@ class Dgii606Export implements FromCollection, WithHeadings
                         $query->orWhere(function ($query) use ($paymentIds) {
                             $query->where('document_type', 'bill_payment')
                                 ->whereIn('document_id', $paymentIds);
+                                  ->whereIn('document_id', $paymentIds);
                         });
                     }
                 })
@@ -77,4 +89,5 @@ class Dgii606Export implements FromCollection, WithHeadings
             'ISR Retenido',
         ];
     }
+}
 }

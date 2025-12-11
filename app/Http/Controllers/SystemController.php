@@ -14,6 +14,11 @@ use Artisan;
 class SystemController extends Controller
 {
 
+        public function index()
+    {
+        return $this->companyIndex();
+    }
+
     public function saveEmailSettings(Request $request)
     {
         if (\Auth::user()->can('manage company settings')) {

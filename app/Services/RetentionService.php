@@ -13,6 +13,9 @@ class RetentionService
     public function buildBillRetentions(Bill $bill): Collection
     {
         return $this->buildRetentions($bill, 'bill', $bill->id, Carbon::parse($bill->bill_date ?? now()));
+        $billDate = Carbon::parse($bill->bill_date ?? now());
+
+        return $this->buildRetentions($bill, 'bill', $bill->id, $billDate);
     }
 
     public function storeBillRetentions(Bill $bill): void
